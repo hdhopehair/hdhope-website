@@ -105,7 +105,7 @@ def main():
     print("檢查 Supabase：%s\n" % base)
 
     # 1. 連線
-   get_json(base + "/rest/v1/stylists?select=id&limit=1", key, "Supabase REST API")
+  get_json(base + "/rest/v1/stylists?select=id&limit=1", key, "Supabase REST API")
     ok("網址與 anon key 可以連線")
 
     # 2. 已發布資料
