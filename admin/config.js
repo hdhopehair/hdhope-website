@@ -13,7 +13,7 @@
  *    填入 webhook 後，按下「發布」會立即觸發重建。
  */
 window.HD_CONFIG = {
-  SUPABASE_URL: "https://usuzdpavetppruewiffs.supabase.co
+  SUPABASE_URL: "https://usuzdpavetppruewiffs.supabase.co"
   SUPABASE_ANON_KEY: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVzdXpkcGF2ZXRwcHJ1ZXdpZmZzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTQzMDYwMTQsImV4cCI6MjEwOTg4MjAxNH0.GHR2uIlgJezCHkG1heYmxSz3QW40F9Z69Ivtsq6yjo4",
   PUBLISH_WEBHOOK: "",
   SITE_BASE: "https://hdhopehair.com"
