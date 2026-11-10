@@ -1,0 +1,102 @@
+name: 官網自動重建
+
+# 這個流程就是「後台改完 → 官網自動更新」的全部機制。
+# 觸發方式：
+#   1. 排程：每 15 分鐘自動檢查一次後台內容（不需要任何人操作）
+#   2. 手動：GitHub repo 的 Actions 頁面 → Run workflow
+#   3. 檔案變更：data / tools / assets / admin 被推上 main 時
+#   4. 即時：後台按「發布」→ 外部服務送出 repository_dispatch（選用，見教學文件）
+
+on:
+  schedule:
+    - cron: "*/15 * * * *"
+  workflow_dispatch:
+  repository_dispatch:
+    types: [publish]
+  push:
+    branches: [main]
+    paths:
+      - "data/**"
+      - "tools/**"
+      - "assets/**"
+      - "admin/**"
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# 排程與手動觸發可能同時發生：同一時間只允許一個發布流程，
+# 後到的排隊等待，不會互相覆蓋或互相中斷。
+concurrency:
+  group: publish-site
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deploy.outputs.page_url }}
+    steps:
+      - name: 取得專案
+        uses: actions/checkout@v4
+
+      - name: 準備 Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: 檢查連線設定是否齊全
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
+        run: |
+          missing=0
+          if [ -z "$SUPABASE_URL" ]; then echo "::error:: repo Secrets 缺少 SUPABASE_URL（Settings → Secrets and variables → Actions）"; missing=1; fi
+          if [ -z "$SUPABASE_ANON_KEY" ]; then echo "::error:: repo Secrets 缺少 SUPABASE_ANON_KEY"; missing=1; fi
+          if [ "$missing" = "1" ]; then exit 1; fi
+          echo "連線設定齊全：$SUPABASE_URL"
+
+      - name: 確認 Supabase 可以公開讀取已發布資料（RLS 檢查）
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
+        run: python3 tools/check_supabase.py
+
+      - name: 從 Supabase 拉資料、下載圖片、重建官網
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
+        run: python3 tools/pull_supabase.py
+
+      - name: 檢查產出結果
+        run: |
+          test -f index.html || { echo "::error:: index.html 沒有產生，停止部署"; exit 1; }
+          pages=$(python3 -c "import pathlib; print(len(list(pathlib.Path('.').rglob('index.html'))) )")
+          echo "產生頁面：$pages 頁"
+          if [ "$pages" -lt 10 ]; then echo "::error:: 頁面數量異常（$pages），停止部署"; exit 1; fi
+          {
+            echo "### 本次發布"
+            echo ""
+            echo "- 頁面數：$pages"
+            echo "- 設計師：$(python3 -c "import json;print(len(json.load(open('data/stylists.json'))['items']))") 位"
+            echo "- 作品：$(python3 -c "import json;print(len(json.load(open('data/works.json'))['items']))") 件"
+            echo "- 觸發方式：${{ github.event_name }}"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: 整理要上線的檔案
+        run: |
+          mkdir -p _site
+          rsync -a --delete             --exclude '.git/' --exclude '.github/' --exclude 'tools/' --exclude 'supabase/'             --exclude '*.md' --exclude '*.zip' --exclude '.env' --exclude 'preview/'             --exclude '__pycache__/'             ./ _site/
+          touch _site/.nojekyll
+          echo "上線檔案數：$(find _site -type f | wc -l)"
+
+      - name: 上傳給 Pages
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: _site
+
+      - name: 部署到 GitHub Pages
+        id: deploy
+        uses: actions/deploy-pages@v4

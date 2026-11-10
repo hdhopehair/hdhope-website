@@ -1,0 +1,81 @@
+{
+  "brand": {
+    "name": "HD Hope Hair Salon",
+    "nameShort": "HD Hope",
+    "nameZh": "HD Hope 髮廊",
+    "slogan": "細節成就美感，讓美好從希望開始。",
+    "enLine": "HIGH DEFINITION · HOPE · BEAUTY",
+    "intro": "以專業技術與溫暖服務，成就每一次美好的改變。",
+    "positioning": "高質感但親切、專業且有溫度的桃園美髮沙龍。",
+    "domain": "https://hdhopehair.com",
+    "locale": "zh-Hant-TW",
+    "logo": {
+      "path": "/assets/img/logo.png",
+      "note": "正式 HD 字母交錯 Logo 原圖（透明 PNG／SVG 優先）。未上傳前顯示中性佔位，不以 AI 重繪。",
+      "status": "pending-upload"
+    }
+  },
+  "contact": {
+    "phoneDisplay": "03-333-0671",
+    "phoneLink": "tel:+88633330671",
+    "addressFull": "桃園市桃園區成功路一段12號3樓",
+    "streetAddress": "成功路一段12號3樓",
+    "addressLocality": "桃園區",
+    "addressRegion": "桃園市",
+    "addressCountry": "TW",
+    "floorNote": "位於 3 樓，入口請由成功路一段進入",
+    "hoursDisplay": "12:00–20:00",
+    "opens": "12:00",
+    "closes": "20:00",
+    "closedDay": "每週一",
+    "closedNote": "每週一公休；國定假日與臨時調整依官方 LINE 公告為準。",
+    "igHandle": "hd_hope_hair",
+    "igUrl": "https://www.instagram.com/hd_hope_hair/",
+    "lineId": "@877onqgo",
+    "lineUrl": "https://line.me/R/ti/p/@877onqgo",
+    "lineStatus": "standard-format-unverified",
+    "lineNote": "此連結依 LINE 官方帳號 ID 的標準加好友網址格式產生，上線前請由店家實際點擊驗證一次。",
+    "googleBusinessUrl": "",
+    "googleBusinessNote": "Google 商家網址尚未提供，取得後填入即可啟用評論模組與地圖按鈕。"
+  },
+  "analytics": {
+    "ga4Id": "",
+    "searchConsoleVerification": "",
+    "note": "未提供正式追蹤 ID 前，不載入任何第三方追蹤程式；欄位已預留於後台設定。"
+  },
+  "pricing": {
+    "confirmedByOwner": false,
+    "confirmedAt": "",
+    "publicNote": "以下價格為店家提供的參考價，尚未完成正式價目表確認，公開前須由管理員核准。"
+  },
+  "seo": {
+    "defaultTitleSuffix": "HD Hope Hair Salon｜桃園美髮沙龍",
+    "defaultDescription": "HD Hope Hair Salon 位於桃園市桃園區成功路一段，提供霧感染髮、漂染特殊色、縮毛矯正、燙髮、護髮與男士剪燙。以專業技術與溫暖服務，成就每一次美好的改變。",
+    "ogImage": "/assets/img/og-default.jpg",
+    "keywordsLocal": [
+      "桃園髮廊",
+      "桃園染髮",
+      "桃園漂髮",
+      "桃園霧感染髮",
+      "桃園特殊色",
+      "桃園縮毛矯正",
+      "桃園燙髮",
+      "桃園護髮",
+      "桃園男士剪髮"
+    ]
+  },
+  "images": {
+    "storeEntrance": {
+      "path": "/assets/img/store-01-entrance.jpg",
+      "alt": "HD Hope Hair Salon 店內空間，入口望向沙龍內部，可見 HD HOPE 立體背光招牌與產品展示層架",
+      "placeholder": "店內實拍照片 01",
+      "note": "入口望向沙龍內部、可見 HD HOPE 招牌與產品展示層架"
+    },
+    "storeReception": {
+      "path": "/assets/img/store-02-reception.jpg",
+      "alt": "HD Hope Hair Salon 接待櫃台與等候區，白色圓弧櫃台與銀灰色空間",
+      "placeholder": "店內實拍照片 02",
+      "note": "接待櫃台、等候區與沙龍空間"
+    }
+  }
+}
