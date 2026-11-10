@@ -1123,7 +1123,7 @@
     if (!email) { loginErr("請先在上方填入電子郵件，再按忘記密碼。"); return; }
     loginErr("");
     try {
-      var r = await fetch(SB + "/auth/v1/recover", {
+      var r = await fetch(SB + "/auth/v1/recover?redirect_to=" + encodeURIComponent("https://hdhopehair.github.io/hdhope-website/admin/reset-password.html"), {
         method: "POST", headers: { apikey: KEY, "Content-Type": "application/json" },
         body: JSON.stringify({ email: email })
       });
