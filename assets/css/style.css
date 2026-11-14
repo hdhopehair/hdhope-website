@@ -542,3 +542,42 @@ html.no-js .reveal,.reveal.is-in{opacity:1;transform:none}
     padding-bottom:env(safe-area-inset-bottom)
   }
 }
+
+/* HD Hope - 設計師介紹頁手機版優化 */
+@media (max-width: 640px) {
+
+  /* PROFILE 改成上下排列 */
+  body:has(.stylist-hero) .info-row {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 8px;
+    padding: 16px 0;
+  }
+
+  /* 職稱、年資、擅長等標籤 */
+  body:has(.stylist-hero) .info-row__k {
+    width: 100%;
+    font-size: 12px;
+    letter-spacing: 0.08em;
+  }
+
+  /* 個人資料內容 */
+  body:has(.stylist-hero) .info-row__v {
+    width: 100%;
+    min-width: 0;
+    line-height: 1.8;
+    overflow-wrap: anywhere;
+  }
+
+  /* 專長膠囊標籤 */
+  body:has(.stylist-hero) .info-row__v .chip {
+    display: inline-flex;
+    max-width: 100%;
+    margin: 0 6px 8px 0;
+    padding: 8px 12px;
+    white-space: normal;
+    word-break: keep-all;
+    line-height: 1.5;
+  }
+
+}
