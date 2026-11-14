@@ -505,3 +505,23 @@ html.no-js .reveal,.reveal.is-in{opacity:1;transform:none}
     line-height: 1.5;
   }
 }
+
+/* HD Hope 設計師頁｜手機版外層排版修正 */
+@media (max-width: 860px) {
+  body:has(.stylist-hero) .split,
+  body:has(.stylist-hero) .split--7-5,
+  body:has(.stylist-hero) .split--5-7 {
+    grid-template-columns: minmax(0, 1fr);
+    align-items: start;
+  }
+
+  body:has(.stylist-hero) .split > * {
+    min-width: 0;
+  }
+
+  body:has(.stylist-hero) .article-side {
+    position: static;
+    width: 100%;
+    min-width: 0;
+  }
+}
