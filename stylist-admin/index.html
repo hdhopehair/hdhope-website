@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>HD Hope｜設計師後台</title>
+  <style>
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      display: grid;
+      place-items: center;
+      background: #f5f3ef;
+      color: #333;
+      font-family: Arial, "Noto Sans TC", sans-serif;
+    }
+
+    .card {
+      width: min(90%, 420px);
+      padding: 40px 30px;
+      background: #fff;
+      border: 1px solid #e5e1db;
+      border-radius: 16px;
+      box-shadow: 0 12px 35px rgba(0,0,0,.05);
+    }
+
+    h1 {
+      text-align: center;
+      letter-spacing: 3px;
+      margin-bottom: 8px;
+    }
+
+    .subtitle {
+      text-align: center;
+      color: #888;
+      margin-bottom: 30px;
+    }
+
+    input, button {
+      width: 100%;
+      padding: 14px;
+      margin-bottom: 14px;
+      border-radius: 8px;
+      font-size: 15px;
+    }
+
+    input {
+      border: 1px solid #ddd;
+    }
+
+    button {
+      background: #333;
+      color: white;
+      border: none;
+      cursor: pointer;
+    }
+
+    button:disabled {
+      opacity: .5;
+      cursor: wait;
+    }
+
+    #message {
+      margin-top: 12px;
+      text-align: center;
+      line-height: 1.6;
+    }
+
+    .success { color: #28794c; }
+    .error { color: #b63c3c; }
+  </style>
+</head>
+
+<body>
+  <main class="card">
+    <h1>HD HOPE</h1>
+    <p class="subtitle">STYLIST PORTAL</p>
+
+    <form id="loginForm">
+      <input
+        id="email"
+        type="email"
+        placeholder="電子郵件"
+        autocomplete="username"
+        required
+      >
+
+      <input
+        id="password"
+        type="password"
+        placeholder="密碼"
+        autocomplete="current-password"
+        required
+      >
+
+      <button id="loginButton" type="submit">
+        設計師登入
+      </button>
+    </form>
+
+    <p id="message" role="status"></p>
+  </main>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="../admin/config.js"></script>
+
+  <script>
+    const message = document.getElementById("message");
+    const button = document.getElementById("loginButton");
+
+   const config = window.HD_CONFIG;
+
+  if (!config || !config.SUPABASE_URL || !config.SUPABASE_ANON_KEY) {
+      message.textContent = "尚未完成 Supabase 連線設定";
+      message.className = "error";
+    } else {
+const client = window.supabase.createClient(
+  config.SUPABASE_URL,
+  config.SUPABASE_ANON_KEY,
+        {
+          auth: {
+            storageKey: "hdhope-stylist-auth"
+          }
+        }
+      );
+
+      document.getElementById("loginForm")
+        .addEventListener("submit", async (event) => {
+          event.preventDefault();
+
+          button.disabled = true;
+          message.textContent = "正在登入...";
+          message.className = "";
+
+          try {
+            const email = document.getElementById("email").value;
+            const password = document.getElementById("password").value;
+
+            const { data, error } =
+              await client.auth.signInWithPassword({
+                email,
+                password
+              });
+
+            if (error) throw error;
+
+            const { data: account, error: accountError } =
+              await client
+                .from("stylist_accounts")
+                .select("stylist_id")
+                .eq("user_id", data.user.id)
+                .single();
+
+            if (accountError || !account) {
+              await client.auth.signOut();
+              throw new Error("此帳號尚未綁定設計師身分");
+            }
+
+            message.textContent =
+              "登入成功！設計師身分驗證完成。";
+
+            message.className = "success";
+
+            document.getElementById("loginForm").hidden = true;
+
+          } catch (error) {
+            message.textContent =
+              error.message || "登入失敗，請稍後再試";
+            message.className = "error";
+          } finally {
+            button.disabled = false;
+          }
+        });
+    }
+  </script>
+</body>
+</html>
