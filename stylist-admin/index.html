@@ -215,7 +215,16 @@ addWorkPanel.innerHTML = `
         rows="4"
       ></textarea>
     </p>
-
+<p>
+  <label for="workPhotos">作品照片</label><br>
+  <input
+    type="file"
+    id="workPhotos"
+    accept="image/jpeg,image/png,image/webp"
+    multiple
+  >
+  <small>可從手機相簿選擇多張照片</small>
+</p>
 <button type="submit" id="saveWorkBtn">
   儲存草稿
 </button>
@@ -249,17 +258,63 @@ document.getElementById("addWorkForm")
     saveMessage.textContent = "正在儲存作品...";
 
     try {
+      // 上傳作品照片
+const photoFiles = Array.from(
+  document.getElementById("workPhotos").files
+);
+
+const uploadedPhotos = [];
+
+for (const file of photoFiles) {
+  if (!["image/jpeg", "image/png", "image/webp"].includes(file.type)) {
+    throw new Error("只支援 JPG、PNG、WebP 照片");
+  }
+
+  if (file.size > 10 * 1024 * 1024) {
+    throw new Error("每張照片不能超過 10MB");
+  }
+
+  saveMessage.textContent = "正在上傳照片：" + file.name;
+
+  const extension = file.name.split(".").pop().toLowerCase();
+
+  const filePath =
+    "works/" +
+    account.stylist_id +
+    "/" +
+    crypto.randomUUID() +
+    "." +
+    extension;
+
+  const { error: uploadError } = await client.storage
+    .from("media")
+    .upload(filePath, file, {
+      contentType: file.type,
+      upsert: false
+    });
+
+  if (uploadError) {
+    throw uploadError;
+  }
+
+  const { data: urlData } = client.storage
+    .from("media")
+    .getPublicUrl(filePath);
+
+  uploadedPhotos.push(urlData.publicUrl);
+}
       const { error } = await client
         .from("works")
-        .insert({
-          slug: "work-" + crypto.randomUUID(),
-          title: title,
-          category: category,
-          description: description,
-          stylist_id: account.stylist_id,
-          status: "draft",
-          featured_status: "none"
-        });
+.insert({
+  slug: "work-" + crypto.randomUUID(),
+  title: title,
+  category: category,
+  description: description,
+  stylist_id: account.stylist_id,
+  status: "draft",
+  featured_status: "none",
+  photos: uploadedPhotos
+});
 
       if (error) {
         throw error;
