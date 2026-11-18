@@ -177,7 +177,105 @@ worksList.textContent = "正在載入作品...";
 worksPanel.appendChild(worksList);
 
 message.after(worksPanel);
+// 新增作品表單
+const addWorkPanel = document.createElement("section");
+addWorkPanel.style.marginTop = "30px";
 
+addWorkPanel.innerHTML = `
+  <h2>新增我的作品</h2>
+
+  <form id="addWorkForm">
+    <p>
+      <label>作品名稱</label><br>
+      <input
+        id="workTitle"
+        type="text"
+        placeholder="例如：霧感奶茶灰棕"
+        required
+      >
+    </p>
+
+    <p>
+      <label>作品分類</label><br>
+      <select id="workCategory">
+        <option value="color">染髮</option>
+        <option value="bleach">漂髮</option>
+        <option value="perm">燙髮</option>
+        <option value="straightening">縮毛矯正</option>
+        <option value="extensions">接髮</option>
+        <option value="cut">剪髮</option>
+      </select>
+    </p>
+
+    <p>
+      <label>作品介紹</label><br>
+      <textarea
+        id="workDescription"
+        placeholder="介紹這次的髮型作品"
+        rows="4"
+      ></textarea>
+    </p>
+
+<button type="submit" id="saveWorkBtn">
+  儲存草稿
+</button>
+  </form>
+`;
+
+worksPanel.after(addWorkPanel);
+            // 顯示作品儲存結果
+const saveMessage = document.createElement("p");
+saveMessage.id = "saveMessage";
+saveMessage.setAttribute("role", "status");
+addWorkPanel.appendChild(saveMessage);
+            // 儲存設計師作品草稿
+document.getElementById("addWorkForm")
+  .addEventListener("submit", async (event) => {
+    event.preventDefault();
+
+    const form = event.currentTarget;
+    const saveButton = document.getElementById("saveWorkBtn");
+
+    const title = document.getElementById("workTitle").value.trim();
+    const category = document.getElementById("workCategory").value;
+    const description = document.getElementById("workDescription").value.trim();
+
+    if (!title) {
+      saveMessage.textContent = "請先輸入作品名稱";
+      return;
+    }
+
+    saveButton.disabled = true;
+    saveMessage.textContent = "正在儲存作品...";
+
+    try {
+      const { error } = await client
+        .from("works")
+        .insert({
+          slug: "work-" + crypto.randomUUID(),
+          title: title,
+          category: category,
+          description: description,
+          stylist_id: account.stylist_id,
+          status: "draft",
+          featured_status: "none"
+        });
+
+      if (error) {
+        throw error;
+      }
+
+      saveMessage.textContent = "✅ 作品草稿儲存成功！重新整理頁面即可查看。";
+      form.reset();
+
+    } catch (error) {
+      saveMessage.textContent =
+        "❌ 儲存失敗：" + error.message;
+
+    } finally {
+      saveButton.disabled = false;
+    }
+  });
 const { data: myWorks, error: worksError } =
   await client
     .from("works")
