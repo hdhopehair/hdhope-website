@@ -625,11 +625,11 @@
         sel("f_cat", "分類", d.category, categories(), "決定作品會出現在哪個療程篩選。") +
         sel("f_stylist", "設計師", d.stylist_id || "", styOpts, "指定後作品會同時出現在該設計師的個人頁。") +
       '</div>' +
-      '<div class="grid3">' +
-        sel("f_status", "狀態", d.status, [["draft", "草稿"], ["published", "已發布"], ["hidden", "已隱藏"]]) +
-        inp("f_date", "完成日期", d.completed_at, "date") +
-        inp("f_sort", "排序", d.sort_order, "number", "數字小的排前面。") +
-      '</div>' +
+'<div class="grid3">' +
+  sel("f_status", "狀態", d.status, [["draft", "草稿"], ["published", "已發布"], ["hidden", "已隱藏"]]) +
+  inp("f_date", "完成日期", d.completed_at, "date") +
+  inp("f_sort", "排序", d.sort_order, "number", "數字小的排前面。") +
+'</div>' +
       '<div class="sect-label">說明</div>' +
       txa("f_desc", "作品描述", d.description, "2–4 句說明染燙過程、髮質狀況與結果。", 5) +
       '<div class="grid2">' +
