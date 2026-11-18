@@ -173,7 +173,13 @@ const { data: myProfile, error: profileError } = await client
 
 if (profileError) {
   console.error("個人資料讀取失敗：", profileError.message);
-} else {
+} else {const profileStatus = document.createElement("p");
+
+profileStatus.textContent = profileError
+  ? "❌ 個人資料讀取失敗：" + profileError.message
+  : "✅ 個人資料讀取成功：" + (myProfile?.name || "未填姓名");
+
+message.after(profileStatus);
   console.log("個人資料讀取成功：", myProfile);
 }
             // 顯示設計師自己的作品
