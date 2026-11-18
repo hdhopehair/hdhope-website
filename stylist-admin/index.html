@@ -164,6 +164,42 @@ const client = window.supabase.createClient(
             message.className = "success";
 
             document.getElementById("loginForm").hidden = true;
+            // 顯示設計師自己的作品
+const worksPanel = document.createElement("section");
+worksPanel.style.marginTop = "24px";
+
+const worksTitle = document.createElement("h2");
+worksTitle.textContent = "我的作品集";
+worksPanel.appendChild(worksTitle);
+
+const worksList = document.createElement("div");
+worksList.textContent = "正在載入作品...";
+worksPanel.appendChild(worksList);
+
+message.after(worksPanel);
+
+const { data: myWorks, error: worksError } =
+  await client
+    .from("works")
+    .select("title, status, featured_status")
+    .eq("stylist_id", account.stylist_id)
+    .order("created_at", { ascending: false });
+
+worksList.replaceChildren();
+
+if (worksError) {
+  worksList.textContent = "作品載入失敗：" + worksError.message;
+} else if (!myWorks || myWorks.length === 0) {
+  worksList.textContent = "目前還沒有作品";
+} else {
+  myWorks.forEach((work) => {
+    const item = document.createElement("p");
+    item.textContent =
+      (work.title || "未命名作品") +
+      "｜" + work.status;
+    worksList.appendChild(item);
+  });
+}
 
           } catch (error) {
             message.textContent =
