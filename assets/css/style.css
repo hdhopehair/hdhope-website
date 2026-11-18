@@ -568,3 +568,41 @@ html.no-js .reveal,.reveal.is-in{opacity:1;transform:none}
   }
 
 }
+/* HD Hope 手機版品牌理念區塊優化 */
+@media (max-width: 768px) {
+
+  /* 品牌理念：手機版改為上下排列 */
+  .split--5-7 {
+    display: flex;
+    flex-direction: column;
+    gap: 28px;
+  }
+
+  /* 文字移到上方 */
+  .split--5-7 > .reveal:nth-child(2) {
+    order: 1;
+    width: 100%;
+  }
+
+  /* 照片移到下方 */
+  .split--5-7 > .reveal:nth-child(1) {
+    order: 2;
+    width: 100%;
+  }
+
+  /* 照片容器放大 */
+  .split--5-7 .media-slot {
+    width: 100%;
+    max-width: 100%;
+    aspect-ratio: auto;
+  }
+
+  /* 照片完整顯示 */
+  .split--5-7 .media-slot img {
+    display: block;
+    width: 100%;
+    height: auto;
+    object-fit: contain;
+  }
+
+}
