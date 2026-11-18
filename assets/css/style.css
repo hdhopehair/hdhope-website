@@ -543,3 +543,28 @@ html.no-js .reveal,.reveal.is-in{opacity:1;transform:none}
   }
 
 }
+/* HD Hope 手機版首頁文字與照片排列 */
+@media (max-width: 768px) {
+
+  .hero__inner {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+    padding-left: var(--pad);
+    padding-right: var(--pad);
+  }
+
+  .hero__copy {
+    width: 100%;
+    max-width: 100%;
+    order: 1;
+  }
+
+  .hero__media {
+    width: 100%;
+    max-width: 100%;
+    order: 2;
+    margin: 0;
+  }
+
+}
