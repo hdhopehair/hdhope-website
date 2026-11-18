@@ -719,6 +719,7 @@
     var body = {
       slug: pickSlug(row, { slug: v("f_slug") }, "work"),
       status: v("f_status") || "draft",
+      featured_status: v("f_featured") || "none",
       sort_order: num(v("f_sort"), 0),
       title: title,
       category: cat,
