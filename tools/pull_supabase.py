@@ -223,6 +223,7 @@ def work_item(r, stylist_slug, base, key, force):
         "serviceSlug": r.get("service_slug") or SERVICE_BY_CAT[cat],
         "stylistSlug": stylist_slug,
         "status": status,
+        "featured_status": r.get("featured_status") or "none",
         "photos": paths,
         "photoNote": r.get("photo_note") or "",
         "colorDesc": r.get("color_desc") or "",
