@@ -164,6 +164,18 @@ const client = window.supabase.createClient(
             message.className = "success";
 
             document.getElementById("loginForm").hidden = true;
+            // 讀取目前登入設計師的個人資料
+const { data: myProfile, error: profileError } = await client
+  .from("stylists")
+  .select("id, name, title, paragraphs, philosophy, specialties, instagram_url, line_url")
+  .eq("id", account.stylist_id)
+  .single();
+
+if (profileError) {
+  console.error("個人資料讀取失敗：", profileError.message);
+} else {
+  console.log("個人資料讀取成功：", myProfile);
+}
             // 顯示設計師自己的作品
 const worksPanel = document.createElement("section");
 worksPanel.style.marginTop = "24px";
