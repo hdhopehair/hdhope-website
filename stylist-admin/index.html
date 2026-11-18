@@ -270,9 +270,9 @@ for (const file of photoFiles) {
     throw new Error("只支援 JPG、PNG、WebP 照片");
   }
 
-  if (file.size > 10 * 1024 * 1024) {
-    throw new Error("每張照片不能超過 10MB");
-  }
+if (file.size > 8 * 1024 * 1024) {
+  throw new Error("每張照片不能超過 8MB");
+}
 
   saveMessage.textContent = "正在上傳照片：" + file.name;
 
@@ -301,7 +301,11 @@ for (const file of photoFiles) {
     .from("media")
     .getPublicUrl(filePath);
 
-  uploadedPhotos.push(urlData.publicUrl);
+  uploadedPhotos.push({
+  path: filePath,
+  alt: title,
+  crop: "center"
+});
 }
       const { error } = await client
         .from("works")
