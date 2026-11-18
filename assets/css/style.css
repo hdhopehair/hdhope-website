@@ -525,3 +525,21 @@ html.no-js .reveal,.reveal.is-in{opacity:1;transform:none}
     min-width: 0;
   }
 }
+/* HD Hope 手機版首頁照片優化 */
+@media (max-width: 768px) {
+
+  .hero__media {
+    width: 100%;
+    height: auto;
+    aspect-ratio: auto;
+    overflow: visible;
+  }
+
+  .hero__media > img {
+    display: block;
+    width: 100%;
+    height: auto;
+    object-fit: contain;
+  }
+
+}
