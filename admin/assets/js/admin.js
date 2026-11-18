@@ -629,6 +629,17 @@
   sel("f_status", "狀態", d.status, [["draft", "草稿"], ["published", "已發布"], ["hidden", "已隱藏"]]) +
   inp("f_date", "完成日期", d.completed_at, "date") +
   inp("f_sort", "排序", d.sort_order, "number", "數字小的排前面。") +
+'</div>' +'<div class="grid2">' +
+  sel(
+    "f_featured",
+    "⭐ 首頁精選",
+    d.featured_status || "none",
+    [
+      ["none", "一般作品（不顯示於首頁）"],
+      ["approved", "首頁精選（顯示於首頁）"]
+    ],
+    "只有已發布的作品才會出現在首頁，最多展示 3 件。"
+  ) +
 '</div>' +
       '<div class="sect-label">說明</div>' +
       txa("f_desc", "作品描述", d.description, "2–4 句說明染燙過程、髮質狀況與結果。", 5) +
