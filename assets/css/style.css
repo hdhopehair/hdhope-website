@@ -606,3 +606,22 @@ html.no-js .reveal,.reveal.is-in{opacity:1;transform:none}
   }
 
 }
+/* ==========================================
+   HD Hope 作品集照片完整顯示
+   ========================================== */
+
+/* 只調整作品卡片的照片 */
+.card__media .media-slot {
+  width: 100%;
+  height: auto;
+  aspect-ratio: auto !important;
+  overflow: hidden;
+}
+
+/* 保留照片原始比例，不裁切 */
+.card__media .media-slot > img {
+  display: block;
+  width: 100%;
+  height: auto;
+  object-fit: contain;
+}
