@@ -283,15 +283,34 @@ document.getElementById("profileSpecialties").value =
       saveMessage.textContent = "正在儲存個人資料...";
 
       try {
-        const { error } = await client.rpc(
-          "update_my_stylist_profile",
-          {
-            p_philosophy: document.getElementById("profilePhilosophy").value,
-            p_experience: document.getElementById("profileExperience").value,
-            p_instagram_url: document.getElementById("profileInstagram").value,
-            p_line_url: document.getElementById("profileLine").value
-          }
-        );
+// 將自我介紹轉換成陣列
+const paragraphs = document
+  .getElementById("profileIntroduction")
+  .value
+  .split("\n")
+  .map(text => text.trim())
+  .filter(Boolean);
+
+// 將擅長技術轉換成陣列
+const specialties = document
+  .getElementById("profileSpecialties")
+  .value
+  .split(/[,，、\n]/)
+  .map(text => text.trim())
+  .filter(Boolean);
+
+// 儲存設計師個人資料
+const { error } = await client.rpc(
+  "update_my_stylist_profile",
+  {
+    p_philosophy: document.getElementById("profilePhilosophy").value,
+    p_experience: document.getElementById("profileExperience").value,
+    p_instagram_url: document.getElementById("profileInstagram").value,
+    p_line_url: document.getElementById("profileLine").value,
+    p_paragraphs: paragraphs,
+    p_specialties: specialties
+  }
+);
 
         if (error) throw error;
 
