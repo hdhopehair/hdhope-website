@@ -486,7 +486,7 @@ if (file.size > 8 * 1024 * 1024) {
 const { data: myWorks, error: worksError } =
   await client
     .from("works")
-    .select("title, status, featured_status")
+    .select("id, title, category, description, photos, status, featured_status")
     .eq("stylist_id", account.stylist_id)
     .order("created_at", { ascending: false });
 
