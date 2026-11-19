@@ -638,25 +638,59 @@ if (Array.isArray(work.photos) && work.photos.length > 0) {
   photoGallery.style.gap = "10px";
   photoGallery.style.marginBottom = "12px";
 
-  work.photos.forEach((photo) => {
-    if (!photo.path) return;
+work.photos.forEach((photo) => {
+  if (!photo.path) return;
 
-    const { data } = client.storage
-      .from("media")
-      .getPublicUrl(photo.path);
+  const { data } = client.storage
+    .from("media")
+    .getPublicUrl(photo.path);
 
-    const img = document.createElement("img");
+  // 每張照片的獨立容器
+  const photoItem = document.createElement("div");
 
-    img.src = data.publicUrl;
-    img.alt = photo.alt || work.title || "作品照片";
+  photoItem.style.display = "flex";
+  photoItem.style.flexDirection = "column";
+  photoItem.style.alignItems = "center";
+  photoItem.style.gap = "6px";
 
-    img.style.width = "110px";
-    img.style.height = "110px";
-    img.style.objectFit = "cover";
-    img.style.borderRadius = "8px";
+  // 顯示照片
+  const img = document.createElement("img");
 
-    photoGallery.appendChild(img);
+  img.src = data.publicUrl;
+  img.alt = photo.alt || work.title || "作品照片";
+
+  img.style.width = "110px";
+  img.style.height = "110px";
+  img.style.objectFit = "cover";
+  img.style.borderRadius = "8px";
+
+  // 建立移除照片按鈕
+  const removePhotoButton = document.createElement("button");
+
+  removePhotoButton.type = "button";
+  removePhotoButton.textContent = "🗑️ 移除照片";
+
+  removePhotoButton.style.fontSize = "12px";
+  removePhotoButton.style.padding = "6px 10px";
+
+  // 暫時只測試確認視窗
+  removePhotoButton.addEventListener("click", () => {
+    const confirmed = confirm(
+      "確定要從作品「" +
+      work.title +
+      "」移除這張照片嗎？"
+    );
+
+    if (confirmed) {
+      alert("確認功能正常！目前尚未真正移除照片。");
+    }
   });
+
+  photoItem.appendChild(img);
+  photoItem.appendChild(removePhotoButton);
+
+  photoGallery.appendChild(photoItem);
+});
 
   item.appendChild(photoGallery);
 }
