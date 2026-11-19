@@ -678,15 +678,109 @@ addPhotoButton.style.marginLeft = "10px";
 const addPhotoMessage = document.createElement("p");
 addPhotoMessage.setAttribute("role", "status");
 
-addPhotoButton.addEventListener("click", () => {
-  if (!addPhotoInput.files.length) {
+addPhotoButton.addEventListener("click", async () => {
+  const files = Array.from(addPhotoInput.files);
+
+  if (!files.length) {
     addPhotoMessage.textContent = "請先選擇照片";
     return;
   }
 
-  addPhotoMessage.textContent =
-    "已選擇 " + addPhotoInput.files.length +
-    " 張照片，準備上傳。";
+  addPhotoButton.disabled = true;
+
+  const uploadedPhotos = [];
+
+  try {
+    // 檢查照片格式與大小
+    for (const file of files) {
+      if (!["image/jpeg", "image/png", "image/webp"].includes(file.type)) {
+        throw new Error("只支援 JPG、PNG、WebP 照片");
+      }
+
+      if (file.size > 8 * 1024 * 1024) {
+        throw new Error("每張照片不能超過 8MB");
+      }
+    }
+
+    // 上傳照片到 Supabase Storage
+    for (const file of files) {
+      addPhotoMessage.textContent = "正在上傳：" + file.name;
+
+      const extension = file.name.split(".").pop().toLowerCase();
+
+      const filePath =
+        "works/" +
+        account.stylist_id +
+        "/" +
+        crypto.randomUUID() +
+        "." +
+        extension;
+
+      const { error: uploadError } = await client.storage
+        .from("media")
+        .upload(filePath, file, {
+          contentType: file.type,
+          upsert: false
+        });
+
+      if (uploadError) throw uploadError;
+
+      uploadedPhotos.push({
+        path: filePath,
+        alt: work.title || "",
+        crop: "center"
+      });
+    }
+
+    // 重新讀取最新照片資料
+    const { data: latestWork, error: readError } = await client
+      .from("works")
+      .select("photos")
+      .eq("id", work.id)
+      .eq("stylist_id", account.stylist_id)
+      .single();
+
+    if (readError) throw readError;
+
+    const existingPhotos = Array.isArray(latestWork.photos)
+      ? latestWork.photos
+      : [];
+
+    // 保留舊照片，加入新照片
+    const updatedPhotos = [
+      ...existingPhotos,
+      ...uploadedPhotos
+    ];
+
+    // 更新作品照片
+    const { data: updatedWork, error: updateError } = await client
+      .from("works")
+      .update({ photos: updatedPhotos })
+      .eq("id", work.id)
+      .eq("stylist_id", account.stylist_id)
+      .select("photos")
+      .single();
+
+    if (updateError) throw updateError;
+
+    work.photos = updatedWork.photos;
+
+    addPhotoMessage.textContent =
+      "✅ 成功新增 " + uploadedPhotos.length + " 張照片！";
+
+    addPhotoInput.value = "";
+
+    // 重新整理以顯示新照片
+    setTimeout(() => {
+      window.location.reload();
+    }, 1200);
+
+  } catch (error) {
+    addPhotoMessage.textContent =
+      "❌ 上傳失敗：" + error.message;
+  } finally {
+    addPhotoButton.disabled = false;
+  }
 });
 
 addPhotoPanel.appendChild(addPhotoInput);
