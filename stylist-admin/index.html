@@ -630,7 +630,28 @@ editButton.addEventListener("click", () => {
 
   item.appendChild(title);
   item.appendChild(editButton);
+// 建立刪除作品按鈕
+const deleteButton = document.createElement("button");
 
+deleteButton.type = "button";
+deleteButton.textContent = "🗑️ 刪除作品";
+
+deleteButton.style.marginLeft = "10px";
+deleteButton.style.backgroundColor = "#b91c1c";
+deleteButton.style.color = "white";
+
+// 暫時只測試確認視窗，不執行刪除
+deleteButton.addEventListener("click", () => {
+  const confirmed = confirm(
+    "確定要刪除作品「" + work.title + "」嗎？"
+  );
+
+  if (confirmed) {
+    alert("確認功能正常！目前尚未真正刪除作品。");
+  }
+});
+
+item.appendChild(deleteButton);
 worksList.appendChild(item);
 });
 } // 結束作品列表的 else 區塊
