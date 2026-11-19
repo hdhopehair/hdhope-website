@@ -764,16 +764,120 @@ replacePhotoButton.addEventListener("click", () => {
 });
 
 // 選擇照片後顯示確認訊息
-replacePhotoInput.addEventListener("change", () => {
+replacePhotoInput.addEventListener("change", async () => {
   const file = replacePhotoInput.files[0];
 
   if (!file) return;
 
-  alert(
-    "✅ 已選擇新照片：" +
+  // 確認是否更換
+  const confirmed = confirm(
+    "確定要將這張照片更換成「" +
     file.name +
-    "\n\n目前是測試階段，尚未真正替換照片。"
+    "」嗎？\n\n其他照片及排列順序都會保留。"
   );
+
+  if (!confirmed) {
+    replacePhotoInput.value = "";
+    return;
+  }
+
+  replacePhotoButton.disabled = true;
+  replacePhotoButton.textContent = "正在更換...";
+
+  try {
+    // 檢查照片格式
+    if (!["image/jpeg", "image/png", "image/webp"].includes(file.type)) {
+      throw new Error("只支援 JPG、PNG、WebP 照片");
+    }
+
+    // 檢查照片大小
+    if (file.size > 8 * 1024 * 1024) {
+      throw new Error("照片不能超過 8MB");
+    }
+
+    // 建立新照片路徑
+    const extension = {
+      "image/jpeg": "jpg",
+      "image/png": "png",
+      "image/webp": "webp"
+    }[file.type];
+
+    const filePath =
+      "works/" +
+      account.stylist_id +
+      "/" +
+      crypto.randomUUID() +
+      "." +
+      extension;
+
+    // 上傳新照片
+    const { error: uploadError } = await client.storage
+      .from("media")
+      .upload(filePath, file, {
+        contentType: file.type,
+        upsert: false
+      });
+
+    if (uploadError) throw uploadError;
+
+    // 讀取最新照片清單
+    const { data: latestWork, error: readError } = await client
+      .from("works")
+      .select("photos")
+      .eq("id", work.id)
+      .eq("stylist_id", account.stylist_id)
+      .single();
+
+    if (readError) throw readError;
+
+    const existingPhotos = Array.isArray(latestWork.photos)
+      ? latestWork.photos
+      : [];
+
+    // 找到原照片的位置
+    const photoIndex = existingPhotos.findIndex(
+      (p) => p.path === photo.path
+    );
+
+    if (photoIndex === -1) {
+      throw new Error("找不到原本的照片，請重新整理頁面");
+    }
+
+    // 複製照片清單，避免直接修改原資料
+    const updatedPhotos = [...existingPhotos];
+
+    // 只更換指定位置的照片
+    updatedPhotos[photoIndex] = {
+      ...existingPhotos[photoIndex],
+      path: filePath
+    };
+
+    // 更新作品照片清單
+    const { data: updatedWork, error: updateError } = await client
+      .from("works")
+      .update({ photos: updatedPhotos })
+      .eq("id", work.id)
+      .eq("stylist_id", account.stylist_id)
+      .eq("photos", JSON.stringify(latestWork.photos))
+      .select("photos")
+      .single();
+
+    if (updateError) throw updateError;
+
+    work.photos = updatedWork.photos;
+
+    alert("✅ 照片更換成功！");
+
+    // 重新整理，顯示新照片
+    window.location.reload();
+
+  } catch (error) {
+    alert("❌ 更換失敗：" + error.message);
+  } finally {
+    replacePhotoButton.disabled = false;
+    replacePhotoButton.textContent = "🔄 更換照片";
+    replacePhotoInput.value = "";
+  }
 });
 
 // 將按鈕加入照片區塊
