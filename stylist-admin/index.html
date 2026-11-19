@@ -516,9 +516,117 @@ myWorks.forEach((work) => {
   editButton.type = "button";
   editButton.textContent = "✏️ 編輯作品";
 
-  editButton.addEventListener("click", () => {
-    alert("準備編輯作品：" + work.title);
+editButton.addEventListener("click", () => {
+  // 避免重複開啟編輯表單
+  const existingForm = item.querySelector(".edit-work-form");
+
+  if (existingForm) {
+    existingForm.remove();
+    return;
+  }
+
+  const editForm = document.createElement("form");
+  editForm.className = "edit-work-form";
+  editForm.style.marginTop = "15px";
+
+  const titleLabel = document.createElement("label");
+  titleLabel.textContent = "作品名稱";
+
+  const titleInput = document.createElement("input");
+  titleInput.type = "text";
+  titleInput.required = true;
+  titleInput.value = work.title || "";
+
+  const categoryLabel = document.createElement("label");
+  categoryLabel.textContent = "作品分類";
+
+  const categorySelect = document.createElement("select");
+
+  const categories = {
+    color: "染髮",
+    bleach: "漂髮",
+    perm: "燙髮",
+    straightening: "縮毛矯正",
+    extensions: "接髮",
+    cut: "剪髮"
+  };
+
+  Object.entries(categories).forEach(([value, label]) => {
+    const option = document.createElement("option");
+    option.value = value;
+    option.textContent = label;
+    categorySelect.appendChild(option);
   });
+
+  categorySelect.value = work.category || "color";
+
+  const descriptionLabel = document.createElement("label");
+  descriptionLabel.textContent = "作品介紹";
+
+  const descriptionInput = document.createElement("textarea");
+  descriptionInput.rows = 4;
+  descriptionInput.value = work.description || "";
+
+  const saveButton = document.createElement("button");
+  saveButton.type = "submit";
+  saveButton.textContent = "💾 儲存修改";
+
+  const resultMessage = document.createElement("p");
+
+  [
+    titleLabel,
+    titleInput,
+    document.createElement("br"),
+    categoryLabel,
+    categorySelect,
+    document.createElement("br"),
+    descriptionLabel,
+    descriptionInput,
+    document.createElement("br"),
+    saveButton,
+    resultMessage
+  ].forEach(element => editForm.appendChild(element));
+
+  editForm.addEventListener("submit", async (event) => {
+    event.preventDefault();
+
+    saveButton.disabled = true;
+    resultMessage.textContent = "正在儲存...";
+
+    try {
+      const { data, error } = await client
+        .from("works")
+        .update({
+          title: titleInput.value.trim(),
+          category: categorySelect.value,
+          description: descriptionInput.value.trim()
+        })
+        .eq("id", work.id)
+        .eq("stylist_id", account.stylist_id)
+        .select("id, title, category, description")
+        .single();
+
+      if (error) throw error;
+
+      work.title = data.title;
+      work.category = data.category;
+      work.description = data.description;
+
+      title.textContent =
+        (work.title || "未命名作品") +
+        "｜" + work.status;
+
+      resultMessage.textContent = "✅ 作品修改成功！";
+    } catch (error) {
+      resultMessage.textContent =
+        "❌ 修改失敗：" + error.message;
+    } finally {
+      saveButton.disabled = false;
+    }
+  });
+
+  item.appendChild(editForm);
+});
 
   item.appendChild(title);
   item.appendChild(editButton);
