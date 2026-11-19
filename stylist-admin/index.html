@@ -523,10 +523,11 @@ myWorks.forEach((work) => {
   item.appendChild(title);
   item.appendChild(editButton);
 
-  worksList.appendChild(item);
+worksList.appendChild(item);
 });
+} // 結束作品列表的 else 區塊
 
-          } catch (error) {
+} catch (error) {
             message.textContent =
               error.message || "登入失敗，請稍後再試";
             message.className = "error";
