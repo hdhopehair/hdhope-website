@@ -497,14 +497,34 @@ if (worksError) {
 } else if (!myWorks || myWorks.length === 0) {
   worksList.textContent = "目前還沒有作品";
 } else {
-  myWorks.forEach((work) => {
-    const item = document.createElement("p");
-    item.textContent =
-      (work.title || "未命名作品") +
-      "｜" + work.status;
-    worksList.appendChild(item);
+myWorks.forEach((work) => {
+  const item = document.createElement("div");
+
+  item.style.padding = "15px";
+  item.style.marginBottom = "12px";
+  item.style.border = "1px solid #ddd";
+  item.style.borderRadius = "10px";
+
+  const title = document.createElement("p");
+
+  title.textContent =
+    (work.title || "未命名作品") +
+    "｜" + work.status;
+
+  const editButton = document.createElement("button");
+
+  editButton.type = "button";
+  editButton.textContent = "✏️ 編輯作品";
+
+  editButton.addEventListener("click", () => {
+    alert("準備編輯作品：" + work.title);
   });
-}
+
+  item.appendChild(title);
+  item.appendChild(editButton);
+
+  worksList.appendChild(item);
+});
 
           } catch (error) {
             message.textContent =
