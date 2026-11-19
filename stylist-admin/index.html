@@ -673,18 +673,74 @@ work.photos.forEach((photo) => {
   removePhotoButton.style.fontSize = "12px";
   removePhotoButton.style.padding = "6px 10px";
 
-  // 暫時只測試確認視窗
-  removePhotoButton.addEventListener("click", () => {
-    const confirmed = confirm(
-      "確定要從作品「" +
-      work.title +
-      "」移除這張照片嗎？"
+removePhotoButton.addEventListener("click", async () => {
+  const confirmed = confirm(
+    "確定要從作品「" +
+    work.title +
+    "」移除這張照片嗎？\n\n" +
+    "其他照片及作品內容都會保留。"
+  );
+
+  if (!confirmed) return;
+
+  removePhotoButton.disabled = true;
+  removePhotoButton.textContent = "正在移除...";
+
+  try {
+    // 讀取資料庫中最新的照片清單
+    const { data: latestWork, error: readError } = await client
+      .from("works")
+      .select("photos")
+      .eq("id", work.id)
+      .eq("stylist_id", account.stylist_id)
+      .single();
+
+    if (readError) throw readError;
+
+    const existingPhotos = Array.isArray(latestWork.photos)
+      ? latestWork.photos
+      : [];
+
+    // 確認照片仍然存在
+    const targetExists = existingPhotos.some(
+      (p) => p.path === photo.path
     );
 
-    if (confirmed) {
-      alert("確認功能正常！目前尚未真正移除照片。");
+    if (!targetExists) {
+      throw new Error("這張照片已不在作品中，請重新整理頁面");
     }
-  });
+
+    // 只移除指定照片，保留其他照片
+    const updatedPhotos = existingPhotos.filter(
+      (p) => p.path !== photo.path
+    );
+
+    // 更新 Supabase 作品資料
+    const { data: updatedWork, error: updateError } = await client
+      .from("works")
+      .update({ photos: updatedPhotos })
+      .eq("id", work.id)
+      .eq("stylist_id", account.stylist_id)
+      .eq("photos", latestWork.photos)
+      .select("photos")
+      .single();
+
+    if (updateError) throw updateError;
+
+    work.photos = updatedWork.photos;
+
+    // 從畫面移除指定照片
+    photoItem.remove();
+
+    alert("✅ 照片已成功從作品中移除！");
+
+  } catch (error) {
+    alert("❌ 移除失敗：" + error.message);
+  } finally {
+    removePhotoButton.disabled = false;
+    removePhotoButton.textContent = "🗑️ 移除照片";
+  }
+});
 
   photoItem.appendChild(img);
   photoItem.appendChild(removePhotoButton);
