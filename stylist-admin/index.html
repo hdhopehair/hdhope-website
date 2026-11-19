@@ -742,10 +742,47 @@ removePhotoButton.addEventListener("click", async () => {
   }
 });
 
-  photoItem.appendChild(img);
-  photoItem.appendChild(removePhotoButton);
+// 建立更換照片按鈕
+const replacePhotoButton = document.createElement("button");
 
-  photoGallery.appendChild(photoItem);
+replacePhotoButton.type = "button";
+replacePhotoButton.textContent = "🔄 更換照片";
+
+replacePhotoButton.style.fontSize = "12px";
+replacePhotoButton.style.padding = "6px 10px";
+
+// 建立隱藏的照片選擇欄位
+const replacePhotoInput = document.createElement("input");
+
+replacePhotoInput.type = "file";
+replacePhotoInput.accept = "image/jpeg,image/png,image/webp";
+replacePhotoInput.style.display = "none";
+
+// 點擊更換照片，開啟檔案選擇視窗
+replacePhotoButton.addEventListener("click", () => {
+  replacePhotoInput.click();
+});
+
+// 選擇照片後顯示確認訊息
+replacePhotoInput.addEventListener("change", () => {
+  const file = replacePhotoInput.files[0];
+
+  if (!file) return;
+
+  alert(
+    "✅ 已選擇新照片：" +
+    file.name +
+    "\n\n目前是測試階段，尚未真正替換照片。"
+  );
+});
+
+// 將按鈕加入照片區塊
+photoItem.appendChild(img);
+photoItem.appendChild(replacePhotoButton);
+photoItem.appendChild(removePhotoButton);
+photoItem.appendChild(replacePhotoInput);
+
+photoGallery.appendChild(photoItem);
 });
 
   item.appendChild(photoGallery);
