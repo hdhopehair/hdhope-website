@@ -721,7 +721,7 @@ removePhotoButton.addEventListener("click", async () => {
       .update({ photos: updatedPhotos })
       .eq("id", work.id)
       .eq("stylist_id", account.stylist_id)
-      .eq("photos", latestWork.photos)
+      .eq("photos", JSON.stringify(latestWork.photos))
       .select("photos")
       .single();
 
