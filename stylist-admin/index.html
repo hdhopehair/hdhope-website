@@ -193,6 +193,92 @@ worksList.textContent = "正在載入作品...";
 worksPanel.appendChild(worksList);
 
 message.after(worksPanel);
+
+// ===== 設計師個人資料編輯 =====
+if (!profileError && myProfile) {
+  const profilePanel = document.createElement("section");
+  profilePanel.style.marginTop = "30px";
+
+  profilePanel.innerHTML = `
+    <h2>編輯我的個人資料</h2>
+
+    <form id="profileForm">
+      <p>
+        <label for="profilePhilosophy">設計理念</label>
+        <textarea id="profilePhilosophy" rows="4"></textarea>
+      </p>
+
+      <p>
+        <label for="profileExperience">工作經歷</label>
+        <textarea id="profileExperience" rows="3"></textarea>
+      </p>
+
+      <p>
+        <label for="profileInstagram">Instagram 連結</label>
+        <input id="profileInstagram" type="url">
+      </p>
+
+      <p>
+        <label for="profileLine">LINE 預約連結</label>
+        <input id="profileLine" type="url">
+      </p>
+
+      <button id="saveProfileBtn" type="submit">
+        儲存個人資料
+      </button>
+    </form>
+
+    <p id="profileSaveMessage" role="status"></p>
+  `;
+
+  worksPanel.before(profilePanel);
+
+  document.getElementById("profilePhilosophy").value =
+    myProfile.philosophy || "";
+
+  document.getElementById("profileExperience").value =
+    myProfile.experience || "";
+
+  document.getElementById("profileInstagram").value =
+    myProfile.instagram_url || "";
+
+  document.getElementById("profileLine").value =
+    myProfile.line_url || "";
+
+  document.getElementById("profileForm")
+    .addEventListener("submit", async (event) => {
+      event.preventDefault();
+
+      const saveButton = document.getElementById("saveProfileBtn");
+      const saveMessage = document.getElementById("profileSaveMessage");
+
+      saveButton.disabled = true;
+      saveMessage.textContent = "正在儲存個人資料...";
+
+      try {
+        const { error } = await client.rpc(
+          "update_my_stylist_profile",
+          {
+            p_philosophy: document.getElementById("profilePhilosophy").value,
+            p_experience: document.getElementById("profileExperience").value,
+            p_instagram_url: document.getElementById("profileInstagram").value,
+            p_line_url: document.getElementById("profileLine").value
+          }
+        );
+
+        if (error) throw error;
+
+        saveMessage.textContent = "✅ 個人資料儲存成功！";
+        saveMessage.className = "success";
+      } catch (error) {
+        saveMessage.textContent = "❌ 儲存失敗：" + error.message;
+        saveMessage.className = "error";
+      } finally {
+        saveButton.disabled = false;
+      }
+    });
+}
+
 // 新增作品表單
 const addWorkPanel = document.createElement("section");
 addWorkPanel.style.marginTop = "30px";
