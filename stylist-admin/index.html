@@ -167,7 +167,7 @@ const client = window.supabase.createClient(
             // 讀取目前登入設計師的個人資料
 const { data: myProfile, error: profileError } = await client
   .from("stylists")
-  .select("id, name, title, paragraphs, philosophy, specialties, instagram_url, line_url")
+  .select("id, name, title, paragraphs, philosophy, experience, specialties, instagram_url, line_url")
   .eq("id", account.stylist_id)
   .single();
 
