@@ -249,7 +249,17 @@ if (!profileError && myProfile) {
   `;
 
   worksPanel.before(profilePanel);
+// 載入自我介紹
+document.getElementById("profileIntroduction").value =
+  Array.isArray(myProfile.paragraphs)
+    ? myProfile.paragraphs.join("\n")
+    : "";
 
+// 載入擅長技術
+document.getElementById("profileSpecialties").value =
+  Array.isArray(myProfile.specialties)
+    ? myProfile.specialties.join("、")
+    : "";
   document.getElementById("profilePhilosophy").value =
     myProfile.philosophy || "";
 
