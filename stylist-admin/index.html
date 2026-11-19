@@ -661,6 +661,39 @@ if (Array.isArray(work.photos) && work.photos.length > 0) {
   item.appendChild(photoGallery);
 }
   item.appendChild(editButton);
+  // 建立新增照片功能
+const addPhotoPanel = document.createElement("div");
+addPhotoPanel.style.marginTop = "12px";
+
+const addPhotoInput = document.createElement("input");
+addPhotoInput.type = "file";
+addPhotoInput.accept = "image/jpeg,image/png,image/webp";
+addPhotoInput.multiple = true;
+
+const addPhotoButton = document.createElement("button");
+addPhotoButton.type = "button";
+addPhotoButton.textContent = "➕ 新增照片";
+addPhotoButton.style.marginLeft = "10px";
+
+const addPhotoMessage = document.createElement("p");
+addPhotoMessage.setAttribute("role", "status");
+
+addPhotoButton.addEventListener("click", () => {
+  if (!addPhotoInput.files.length) {
+    addPhotoMessage.textContent = "請先選擇照片";
+    return;
+  }
+
+  addPhotoMessage.textContent =
+    "已選擇 " + addPhotoInput.files.length +
+    " 張照片，準備上傳。";
+});
+
+addPhotoPanel.appendChild(addPhotoInput);
+addPhotoPanel.appendChild(addPhotoButton);
+addPhotoPanel.appendChild(addPhotoMessage);
+
+item.appendChild(addPhotoPanel);
 // 建立刪除作品按鈕
 const deleteButton = document.createElement("button");
 
