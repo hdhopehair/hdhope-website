@@ -640,14 +640,43 @@ deleteButton.style.marginLeft = "10px";
 deleteButton.style.backgroundColor = "#b91c1c";
 deleteButton.style.color = "white";
 
-// 暫時只測試確認視窗，不執行刪除
-deleteButton.addEventListener("click", () => {
+deleteButton.addEventListener("click", async () => {
   const confirmed = confirm(
-    "確定要刪除作品「" + work.title + "」嗎？"
+    "確定要刪除作品「" + work.title +
+    "」嗎？\n\n刪除後將無法從作品列表復原！"
   );
 
-  if (confirmed) {
-    alert("確認功能正常！目前尚未真正刪除作品。");
+  if (!confirmed) return;
+
+  deleteButton.disabled = true;
+  deleteButton.textContent = "正在刪除...";
+
+  try {
+    const { data, error } = await client
+      .from("works")
+      .delete()
+      .eq("id", work.id)
+      .eq("stylist_id", account.stylist_id)
+      .select("id");
+
+    if (error) throw error;
+
+    if (!data || data.length !== 1) {
+      throw new Error("找不到可刪除的作品，請確認帳號權限");
+    }
+
+    item.remove();
+
+    if (!worksList.children.length) {
+      worksList.textContent = "目前還沒有作品";
+    }
+
+    alert("✅ 作品已成功刪除！");
+  } catch (error) {
+    alert("❌ 刪除失敗：" + error.message);
+  } finally {
+    deleteButton.disabled = false;
+    deleteButton.textContent = "🗑️ 刪除作品";
   }
 });
 
