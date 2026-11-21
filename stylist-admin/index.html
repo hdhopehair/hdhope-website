@@ -928,8 +928,79 @@ photoGallery.appendChild(photoItem);
 
   item.appendChild(photoGallery);
 }
-  item.appendChild(editButton);
-  // 建立新增照片功能
+  item.appendChild(photoGallery);
+}
+
+item.appendChild(editButton);
+
+// ==============================
+// HD Hope 作品提交審核功能
+// ==============================
+
+const reviewStatusValue = work.review_status || "draft";
+
+if (
+  reviewStatusValue === "draft" ||
+  reviewStatusValue === "rejected"
+) {
+  const submitReviewButton = document.createElement("button");
+
+  submitReviewButton.type = "button";
+
+  submitReviewButton.textContent =
+    reviewStatusValue === "rejected"
+      ? "🔄 重新提交管理員審核"
+      : "📤 提交管理員審核";
+
+  submitReviewButton.style.marginTop = "12px";
+  submitReviewButton.style.width = "100%";
+  submitReviewButton.style.padding = "12px";
+  submitReviewButton.style.background = "#222";
+  submitReviewButton.style.color = "#fff";
+  submitReviewButton.style.border = "none";
+  submitReviewButton.style.borderRadius = "8px";
+  submitReviewButton.style.cursor = "pointer";
+
+  submitReviewButton.addEventListener("click", async () => {
+    const confirmed = confirm(
+      "確定要將這件作品提交給管理員審核嗎？"
+    );
+
+    if (!confirmed) return;
+
+    submitReviewButton.disabled = true;
+    submitReviewButton.textContent = "正在提交審核...";
+
+    try {
+      const { error } = await client.rpc(
+        "submit_work_for_review",
+        {
+          p_work_id: work.id
+        }
+      );
+
+      if (error) throw error;
+
+      alert("✅ 作品已成功提交管理員審核！");
+
+      window.location.reload();
+
+    } catch (error) {
+      alert("❌ 提交審核失敗：" + error.message);
+
+      submitReviewButton.disabled = false;
+
+      submitReviewButton.textContent =
+        reviewStatusValue === "rejected"
+          ? "🔄 重新提交管理員審核"
+          : "📤 提交管理員審核";
+    }
+  });
+
+  item.appendChild(submitReviewButton);
+}
+
+// 建立新增照片功能
 const addPhotoPanel = document.createElement("div");
 addPhotoPanel.style.marginTop = "12px";
 
