@@ -519,9 +519,34 @@ myWorks.forEach((work) => {
 
   const title = document.createElement("p");
 
-  title.textContent =
-    (work.title || "未命名作品") +
-    "｜" + work.status;
+const reviewLabels = {
+  draft: "⚪ 尚未提交",
+  pending: "🟡 等待管理員審核",
+  approved: "🟢 已核准",
+  rejected: "🔴 已退回修改"
+};
+
+const reviewStatus = work.review_status || "draft";
+
+title.textContent =
+  (work.title || "未命名作品") +
+  "｜" +
+  (reviewLabels[reviewStatus] || "⚪ 尚未提交");
+
+if (reviewStatus === "rejected") {
+  const reviewMessage = document.createElement("p");
+
+  reviewMessage.style.color = "#b91c1c";
+  reviewMessage.style.background = "#fef2f2";
+  reviewMessage.style.padding = "12px";
+  reviewMessage.style.borderRadius = "8px";
+
+  reviewMessage.textContent =
+    "管理員退回原因：" +
+    (work.review_note || "未提供原因");
+
+  item.appendChild(reviewMessage);
+}
 
   const editButton = document.createElement("button");
 
