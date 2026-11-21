@@ -248,14 +248,21 @@ var NAV = [
     renderView();
   }
 
-  function renderView() {
+function renderView() {
     var v = $("view");
     v.innerHTML = '<div class="empty">載入中…</div>';
-    var fn = { dash: viewDash, stylists: viewStylists, works: viewWorks, media: viewMedia,
-      settings: viewSettings, account: viewAccount, phase2: viewPhase2 }[S.view] || viewDash;
+    var fn = {
+      dash: viewDash,
+      stylists: viewStylists,
+      works: viewWorks,
+      reviews: viewReviews,
+      media: viewMedia,
+      settings: viewSettings,
+      account: viewAccount,
+      phase2: viewPhase2
+    }[S.view] || viewDash;
     fn(v);
-  }
-
+}
   function fail(v, e) {
     v.innerHTML = '<div class="empty"><b>讀取失敗</b>' + esc(e && e.message ? e.message : "請重新整理頁面") + "</div>";
   }
