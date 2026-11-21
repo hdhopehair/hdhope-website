@@ -1350,4 +1350,4 @@ await api("/rpc/admin_save_work", {
 
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", start);
   else start();
-}
+})();
