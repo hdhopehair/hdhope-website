@@ -246,6 +246,7 @@ var NAV = [
     if (!skipHash) { try { history.replaceState(null, "", "#" + k); } catch (e) {} }
     closeDrawer();
     renderView();
+    }
 async function viewReviews(v) {
   v.innerHTML = `
     <div style="padding:24px;">
