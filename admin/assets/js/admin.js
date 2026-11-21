@@ -330,13 +330,40 @@ async function viewReviews(v) {
           <p>設計師：${esc(stylistName)}</p>
           <p>提交時間：${esc(submitted)}</p>
           <p>審核狀態：🟡 等待審核</p>
+          <div style="display:flex;gap:10px;margin-top:16px;flex-wrap:wrap;">
+  <button
+    type="button"
+    class="btn"
+    data-review-action="approve"
+    data-work-id="${esc(work.id)}"
+  >
+    ✓ 核准發布
+  </button>
+
+  <button
+    type="button"
+    class="btn"
+    data-review-action="reject"
+    data-work-id="${esc(work.id)}"
+  >
+    ↩ 退回修改
+  </button>
+</div>
         </div>
       `;
     });
 
     html += "</div>";
     v.innerHTML = html;
-
+v.querySelectorAll("[data-review-action]").forEach(function(btn) {
+  btn.addEventListener("click", function() {
+    handleWorkReview(
+      btn.getAttribute("data-work-id"),
+      btn.getAttribute("data-review-action"),
+      btn
+    );
+  });
+});
   } catch (e) {
     v.innerHTML = `
       <div style="padding:24px;">
