@@ -246,16 +246,107 @@ var NAV = [
     if (!skipHash) { try { history.replaceState(null, "", "#" + k); } catch (e) {} }
     closeDrawer();
     renderView();
-    }function viewReviews(v) {
+async function viewReviews(v) {
   v.innerHTML = `
     <div style="padding:24px;">
       <h2>作品審核管理</h2>
-      <p>這裡將顯示設計師提交的待審核作品。</p>
-      <div class="empty">
-        審核功能建置中
-      </div>
+      <p>查看設計師提交的待審核作品</p>
+      <div class="empty">正在載入待審核作品…</div>
     </div>
   `;
+
+  try {
+    var works = await api(
+      "/works?select=*&review_status=eq.pending&order=submitted_at.desc"
+    );
+
+    if (!Array.isArray(works) || works.length === 0) {
+      v.innerHTML = `
+        <div style="padding:24px;">
+          <h2>作品審核管理</h2>
+          <div class="empty">
+            目前沒有待審核作品
+          </div>
+        </div>
+      `;
+      return;
+    }
+
+    var html = `
+      <div style="padding:24px;">
+        <h2>作品審核管理</h2>
+        <p>目前共有 ${works.length} 件待審核作品</p>
+    `;
+
+    works.forEach(function(work) {
+      var stylist = (S.stylists || []).find(function(s) {
+        return s.id === work.stylist_id;
+      });
+
+      var stylistName = stylist
+        ? (stylist.name || stylist.display_name || "未命名設計師")
+        : "未知設計師";
+
+      var photo = Array.isArray(work.photos) && work.photos.length
+        ? work.photos[0]
+        : null;
+
+      var photoPath = photo
+        ? (typeof photo === "string" ? photo : photo.path)
+        : "";
+
+      var photoUrl = photoPath
+        ? SB + "/storage/v1/object/public/media/" +
+          photoPath.split("/").map(encodeURIComponent).join("/")
+        : "";
+
+      var submitted = work.submitted_at
+        ? new Date(work.submitted_at).toLocaleString("zh-TW")
+        : "尚無提交時間";
+
+      html += `
+        <div style="
+          border:1px solid #ddd;
+          border-radius:12px;
+          padding:16px;
+          margin-top:16px;
+          background:#fff;
+        ">
+          ${photoUrl ? `
+            <img
+              src="${esc(photoUrl)}"
+              alt="作品照片"
+              style="
+                width:160px;
+                max-width:100%;
+                border-radius:8px;
+                object-fit:cover;
+              "
+            >
+          ` : ""}
+
+          <h3>${esc(work.title || "未命名作品")}</h3>
+
+          <p>設計師：${esc(stylistName)}</p>
+          <p>提交時間：${esc(submitted)}</p>
+          <p>審核狀態：🟡 等待審核</p>
+        </div>
+      `;
+    });
+
+    html += "</div>";
+    v.innerHTML = html;
+
+  } catch (e) {
+    v.innerHTML = `
+      <div style="padding:24px;">
+        <h2>作品審核管理</h2>
+        <div class="empty">
+          讀取失敗：${esc(e.message)}
+        </div>
+      </div>
+    `;
+  }
 }
 
 function renderView() {
