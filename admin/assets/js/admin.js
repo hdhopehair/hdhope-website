@@ -246,6 +246,17 @@ var NAV = [
     if (!skipHash) { try { history.replaceState(null, "", "#" + k); } catch (e) {} }
     closeDrawer();
     renderView();
+    function viewReviews(v) {
+  v.innerHTML = `
+    <div style="padding:24px;">
+      <h2>作品審核管理</h2>
+      <p>這裡將顯示設計師提交的待審核作品。</p>
+      <div class="empty">
+        審核功能建置中
+      </div>
+    </div>
+  `;
+}
   }
 
 function renderView() {
