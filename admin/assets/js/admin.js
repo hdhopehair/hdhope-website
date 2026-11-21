@@ -749,8 +749,13 @@
     if (!body.photos.length) { toast("請至少上傳一張照片", "err"); return; }
     busy(btn, true, "儲存中…");
     try {
-      var q = "/works" + (row && row.id ? "?id=eq." + encodeURIComponent(row.id) : "");
-      await api(q, { method: row && row.id ? "PATCH" : "POST", prefer: "return=representation", body: body });
+await api("/rpc/admin_save_work", {
+  method: "POST",
+  body: {
+    p_work_id: row && row.id ? row.id : null,
+    p_data: body
+  }
+});
       toast(row && row.id ? "已儲存作品" : "已新增作品", "ok");
       closeDrawer();
       await loadWorks();
