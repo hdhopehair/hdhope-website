@@ -36,7 +36,7 @@ jobs:
   publish:
     runs-on: ubuntu-latest
     environment:
-- name: 設定 GitHub Pages
+  name: 設定 GitHub Pages
   uses: actions/configure-pages@v5
       url: ${{ steps.deploy.outputs.page_url }}
     steps:
