@@ -376,7 +376,58 @@ v.querySelectorAll("[data-review-action]").forEach(function(btn) {
     `;
   }
 }
+async function handleWorkReview(workId, action, btn) {
+  if (!workId || (action !== "approve" && action !== "reject")) {
+    toast("審核資料不正確", "err");
+    return;
+  }
 
+  var note = "";
+
+  if (action === "approve") {
+    if (!window.confirm("確定核准並發布這件作品嗎？")) return;
+  } else {
+    var input = window.prompt("請輸入退回修改原因（必填）：");
+    if (input === null) return;
+
+    note = input.trim();
+
+    if (!note) {
+      toast("請填寫退回原因", "err");
+      return;
+    }
+  }
+
+  busy(btn, true, "處理中…");
+
+  try {
+    await api("/rpc/review_work", {
+      method: "POST",
+      body: {
+        p_work_id: workId,
+        p_action: action,
+        p_note: note
+      }
+    });
+
+    toast(
+      action === "approve" ? "作品已核准發布" : "作品已退回修改",
+      "ok"
+    );
+
+    await loadWorks();
+
+    if (action === "approve") {
+      triggerPublish(true);
+    }
+
+    renderView();
+  } catch (e) {
+    toast("審核失敗：" + e.message, "err");
+  } finally {
+    busy(btn, false);
+  }
+}
 function renderView() {
     var v = $("view");
     v.innerHTML = '<div class="empty">載入中…</div>';
