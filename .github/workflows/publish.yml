@@ -36,12 +36,14 @@ jobs:
   publish:
     runs-on: ubuntu-latest
     environment:
-      name: github-pages
+- name: 設定 GitHub Pages
+  uses: actions/configure-pages@v5
       url: ${{ steps.deploy.outputs.page_url }}
     steps:
       - name: 取得專案
         uses: actions/checkout@v4
-
+- name: 設定 GitHub Pages
+  uses: actions/configure-pages@v5
       - name: 準備 Python
         uses: actions/setup-python@v5
         with:
