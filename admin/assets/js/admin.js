@@ -265,7 +265,7 @@ function renderView() {
       dash: viewDash,
       stylists: viewStylists,
       works: viewWorks,
-      reviews: viewDash,
+      reviews: viewReviews,
       media: viewMedia,
       settings: viewSettings,
       account: viewAccount,
