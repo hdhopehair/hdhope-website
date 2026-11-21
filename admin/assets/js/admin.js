@@ -200,10 +200,16 @@
   }
 
   /* ------------------------------------------------------------------ 導覽／路由 */
-  var NAV = [
-    ["dash", "總覽"], ["stylists", "設計師"], ["works", "作品集"],
-    ["media", "媒體庫"], ["settings", "網站設定"], ["account", "帳號"], ["phase2", "第二階段"]
-  ];
+var NAV = [
+  ["dash", "總覽"],
+  ["stylists", "設計師"],
+  ["works", "作品集"],
+  ["reviews", "待審核作品"],
+  ["media", "媒體庫"],
+  ["settings", "網站設定"],
+  ["account", "帳號"],
+  ["phase2", "第二階段"]
+];
 
   function buildNav() {
     var nav = $("nav");
