@@ -246,7 +246,7 @@ var NAV = [
     if (!skipHash) { try { history.replaceState(null, "", "#" + k); } catch (e) {} }
     closeDrawer();
     renderView();
-    function viewReviews(v) {
+    }function viewReviews(v) {
   v.innerHTML = `
     <div style="padding:24px;">
       <h2>作品審核管理</h2>
@@ -257,7 +257,6 @@ var NAV = [
     </div>
   `;
 }
-  }
 
 function renderView() {
     var v = $("view");
