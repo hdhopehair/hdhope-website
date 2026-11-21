@@ -391,17 +391,6 @@ function renderView() {
     }[S.view] || viewDash;
     fn(v);
 }
-  function viewReviews(v) {
-  v.innerHTML = `
-    <div style="padding:24px;">
-      <h2>作品審核管理</h2>
-      <p>這裡將顯示設計師提交的待審核作品。</p>
-      <div class="empty">
-        審核功能建置中
-      </div>
-    </div>
-  `;
-}
   function fail(v, e) {
     v.innerHTML = '<div class="empty"><b>讀取失敗</b>' + esc(e && e.message ? e.message : "請重新整理頁面") + "</div>";
   }
