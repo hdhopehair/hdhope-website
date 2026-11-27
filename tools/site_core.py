@@ -357,14 +357,6 @@ WEBSITE_LD = {
         "@id": DOMAIN + "/#salon"
     },
 }
-    "@context": "https://schema.org",
-    "@type": "WebSite",
-    "@id": DOMAIN + "/#website",
-    "url": DOMAIN + "/",
-    "name": BRAND["name"],
-    "inLanguage": BRAND.get("locale", "zh-Hant-TW"),
-    "publisher": {"@id": DOMAIN + "/#salon"},
-}
 
 
 def brand_mark(depth, cls=""):
