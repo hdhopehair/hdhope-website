@@ -86,7 +86,7 @@ def build_home():
 {sec_head(rv["eyebrow"], rv["title"], rv["aside"], "Reviews")}
 <div class="mt-4"><p class="lead">每一次的信任，都是我們持續進步的動力。歡迎了解顧客對 HD Hope 的真實評價。</p></div>
 <div class="btn-row mt-3">{btn("查看顧客評價", "/reviews/", 0, kind="btn--ghost")}</div>
-
+</div></section>'''
     jo = h["journal"]
     rows = "".join(article_row(a, 0) for a in ARTICLES["items"][:3])
     journal = f'''<section class="sect"><div class="wrap">
