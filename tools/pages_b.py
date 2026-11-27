@@ -253,27 +253,95 @@ def build_work_detail(w):
 
 # ---------------------------------------------------------------- reviews
 def build_reviews_page():
-    pg = PAGES["reviews"]
+    pg = dict(PAGES["reviews"])
     d = 1
+    contact = SITE.get("contact", {})
+
+    google_url = (
+        REVIEWS.get("googleBusinessUrl")
+        or contact.get("googleBusinessUrl")
+        or ""
+    )
+
+    review_url = (
+        REVIEWS.get("googleReviewUrl")
+        or contact.get("googleReviewUrl")
+        or ""
+    )
+
+    pg["lead"] = "探索 HD Hope Hair Salon 的真實顧客評價，了解我們對美髮技術、服務品質與細節的堅持。"
+
     body = []
     body.append('<section class="sect"><div class="wrap">')
     body.append(page_head(pg, d, [("首頁", "/"), ("顧客評價", None)],
                           aside="", wrap=False))
+
     body.append('<div class="plain-card mt-4">')
     body.append('<span class="eyebrow">GOOGLE REVIEWS</span>')
-    body.append('<h2 class="mt-2">每一份信任，都是我們前進的動力</h2>')
-    body.append('<p class="lead mt-3">我們重視每一位顧客的服務體驗，從髮況諮詢、技術細節到日常整理，都希望帶給你安心且有質感的美髮體驗。</p>')
-    body.append('<p class="mt-3">歡迎透過 Google 商家檔案，了解顧客的真實服務評價與分享。</p>')
-    body.append('<div class="btn-row mt-4">%s</div>' % btn(
-        "查看 Google 顧客評價",
-        "https://www.google.com/maps/search/?api=1&query=HD+Hope+Hair+Salon",
-        d))
-    body.append('</div></div></section>')
-    body.append(cta_band("期待與你的每一次相遇",
-                         "無論是想改變髮色、改善髮質，還是尋找適合自己的髮型，都歡迎透過 LINE 與我們聊聊。",
-                         d, secondary=("聯絡與交通資訊", "/contact/")))
-    page("/reviews/",
-         "顧客評價｜HD Hope Hair Salon 桃園美髮沙龍",
-         "了解 HD Hope Hair Salon 桃園美髮沙龍的真實顧客評價與服務體驗，探索專業染髮、漂染、縮毛矯正、燙髮及護髮服務。",
-         "".join(body), d, current="/reviews/", priority="0.7",
-         blocks=[SALON_LD, breadcrumb_ld([("首頁", "/"), ("顧客評價", "/reviews/")])])
+    body.append('<h2 class="mt-2">%s</h2>' % esc(
+        REVIEWS.get("emptyTitle", "聽聽顧客眼中的 HD Hope")
+    ))
+    body.append('<p class="lead mt-3">%s</p>' % esc(
+        REVIEWS.get("emptyBody", "")
+    ))
+
+    buttons = []
+
+    if google_url:
+        buttons.append(btn(
+            "查看 Google 顧客評價",
+            google_url,
+            d
+        ))
+
+    if review_url:
+        buttons.append(btn(
+            "我要留下評價",
+            review_url,
+            d,
+            kind="btn--ghost"
+        ))
+
+    body.append('<div class="btn-row mt-4">%s</div>' % " ".join(buttons))
+    body.append('<p class="small muted mt-3">評價來源：Google 商家檔案</p>')
+    body.append('</div>')
+
+    body.append('<div class="plain-card mt-4">')
+    body.append('<span class="eyebrow">YOUR EXPERIENCE</span>')
+    body.append('<h2 class="mt-2">每一份回饋，都是我們進步的動力</h2>')
+    body.append('<p class="mt-3">無論是喜歡的髮型、滿意的服務，或是希望我們改善的地方，都歡迎分享你的真實體驗。你的建議，將幫助 HD Hope 持續提升技術與服務品質。</p>')
+
+    if review_url:
+        body.append('<div class="btn-row mt-4">%s</div>' % btn(
+            "分享我的服務體驗",
+            review_url,
+            d
+        ))
+
+    body.append('</div>')
+    body.append('</div></section>')
+
+    body.append(cta_band(
+        "期待與你的每一次相遇",
+        "無論是免漂霧感染髮、漂染特殊色、縮毛矯正、燙髮、接髮或專業護髮，都歡迎透過 LINE 與我們聊聊。",
+        d,
+        secondary=("探索專業服務", "/services/")
+    ))
+
+    page(
+        "/reviews/",
+        "顧客評價｜HD Hope Hair Salon 桃園髮廊",
+        "查看 HD Hope Hair Salon 桃園髮廊的 Google 真實顧客評價與服務體驗，了解免漂染髮、漂染、縮毛矯正、燙髮、接髮及專業護髮服務。",
+        "".join(body),
+        d,
+        current="/reviews/",
+        noindex=False,
+        priority="0.7",
+        blocks=[
+            SALON_LD,
+            breadcrumb_ld([
+                ("首頁", "/"),
+                ("顧客評價", "/reviews/")
+            ])
+        ]
+    )
