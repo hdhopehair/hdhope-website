@@ -389,7 +389,7 @@ def footer_html(depth=0):
         '</div></div>',
         '<div class="site-footer__bottom">',
         '<p>© %s %s。All rights reserved.</p>' % (BUILD_DATE[:4], esc(BRAND["name"])),
-        '<p class="small">本站照片與文字版權屬店家所有。頁面狀態：第一版建置・部分資料待店家提供。</p>',
+'<p class="small">本站照片與文字版權屬 HD Hope Hair Salon 所有，未經授權請勿轉載。</p>',
         '</div></div></footer>',
     ])
 
