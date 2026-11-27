@@ -136,7 +136,7 @@ def service_tile(s, depth=0):
             '<span class="svc-tile__go">看服務說明 →</span></div></a>'
             % (href("/services/%s/" % s["slug"], depth),
                photo(s.get("heroImage", "") and img_path(s.get("heroImage", "")) or "",
-                     "%s 示意" % s["name"], "服務示意照待補", "", depth, ratio="3-2"),
+                      "%s 造型介紹" % s["name"], "探索專業美髮服務", "", depth, ratio="3-2"),
                esc(s.get("num", "")), esc(s.get("name", "")), esc(s.get("cardDesc", ""))))
 
 
@@ -148,30 +148,28 @@ def work_card(w, depth=0):
             '<div class="card__body"><div class="card__meta">%s</div>'
             '<h3 class="h4"><a href="%s">%s</a></h3>'
             '<p class="small muted">%s</p>'
-            '<div class="card__foot">%s</div></div></article>'
+            '<div class="card__foot"><a class="link-arrow" href="%s">查看作品 →</a></div></div></article>'
             % (esc(w.get("category", "")), href("/gallery/%s/" % w["slug"], depth),
                photo(photos[0] if photos else "", w.get("alt", w["title"]),
-                     "作品照片待補", w.get("photoNote", ""), depth, ratio="4-5"),
+                     "造型作品", "", depth, ratio="4-5"),
                esc(cat), href("/gallery/%s/" % w["slug"], depth), esc(w["title"]),
-               esc(w.get("desc", "")), status_badge(w.get("status", ""))))
-
+               esc(w.get("desc", "")), href("/gallery/%s/" % w["slug"], depth)))
 
 def article_row(a, depth=0):
     cat = ARTICLE_CATS.get(a.get("category", ""), "")
     return ('<article class="article-row reveal">'
             '<div class="article-row__thumb">%s</div>'
             '<div class="article-row__body">'
-            '<div class="article-row__meta">%s<span>%s 分鐘</span>%s</div>'
+            '<div class="article-row__meta">%s<span>%s 分鐘</span></div>'
             '<h3 class="h4"><a href="%s">%s</a></h3>'
             '<p class="small muted">%s</p>'
             '<span class="article-row__go"><a class="link-arrow" href="%s">閱讀全文</a></span>'
             '</div></article>'
             % (photo(a.get("heroImage", "") and img_path(a.get("heroImage", "")) or "",
-                     a["title"], "封面照待補", a.get("heroNote", ""), depth, ratio="4-3"),
-               esc(cat), esc(a.get("readingTime", "")), status_badge(a.get("status", "")),
+                     a["title"], "美髮專業知識", "", depth, ratio="4-3"),
+               esc(cat), esc(a.get("readingTime", "")),
                href("/journal/%s/" % a["slug"], depth), esc(a.get("title", "")),
                esc(a.get("excerpt", "")), href("/journal/%s/" % a["slug"], depth)))
-
 
 def stylist_card(s, depth=0):
     return ('<article class="stylist-card reveal">'
@@ -181,13 +179,13 @@ def stylist_card(s, depth=0):
             '<div class="stylist-card__tags">%s</div>'
             '<p class="small">%s</p>'
             '<div class="btn-row mt-2">%s</div></div></article>'
-            % (photo(s.get("photo", ""), "%s 形象照" % s.get("name", ""), "設計師形象照待補",
-                     s.get("photoNote", ""), depth, ratio="4-5"),
+            % (photo(s.get("photo", ""), "%s 形象照" % s.get("name", ""), "HD Hope Hair Stylist",
+                     "", depth, ratio="4-5"),
                href("/stylists/%s/" % s["slug"], depth), esc(s.get("name", "")),
                esc(s.get("title", "")),
                "".join('<span class="chip">%s</span>' % esc(t) for t in (s.get("specialties") or [])[:3]),
                esc(s.get("philosophy", "")),
-               btn("看個人頁", "/stylists/%s/" % s["slug"], depth, kind="btn--ghost btn--sm")))
+               btn("認識設計師", "/stylists/%s/" % s["slug"], depth, kind="btn--ghost btn--sm")))
 
 
 def stylist_slot(n, depth=0, label="版位待補"):
@@ -214,7 +212,7 @@ def price_table(prices, caption="", note=""):
         head += '<p class="price-note">%s</p>' % esc(PRICING.get("publicNote", ""))
     elif note:
         head += '<p class="price-note">%s</p>' % esc(note)
-    return head
+    return head + '</div>'
 
 
 def faq_list(items, start=1):
