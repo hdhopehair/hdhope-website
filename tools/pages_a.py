@@ -22,6 +22,41 @@ def hero_media(src, alt, txt, note, depth, cls="hero__media"):
     return '<div class="%s%s%s">%s%s</div>' % (cls, " media-slot", miss, inner, ph)
 
 
+def home_featured_journal():
+    """Only published, explicitly featured articles; retain sync ordering."""
+    featured = [a for a in ARTICLES["items"]
+                if a.get("status") == "published" and a.get("featured") is True][:3]
+    if not featured:
+        return ""
+    labels = dict(ARTICLE_CATS)
+    labels.update({"extensions": "接髮", "scalp": "頭皮養護"})
+    cards = []
+    for a in featured:
+        url = "/journal/" + a["slug"] + "/"
+        title = a.get("title") or a["slug"]
+        cover = a.get("heroImage") or ""
+        if cover in ("store-01", "store-02"):
+            cover = img_path(cover)
+        if not cover.startswith("/assets/img/") or ".." in cover.split("/"):
+            cover = ""
+        media = ('<a class="card__media" href="%s" aria-label="%s">%s</a>' %
+                 (esc(href(url, 0)), esc(title), photo(cover, a.get("heroAlt") or title,
+                  "HAIR JOURNAL", "", 0, ratio="16-9"))) if cover and exists(cover) else ""
+        meta = "%s · %s 分鐘閱讀" % (labels.get(a.get("category"), "美髮知識"), a.get("readingTime") or 5)
+        cards.append(f'''<article class="card">{media}
+<div class="card__body"><span class="card__meta">{esc(meta)}</span>
+<h3><a href="{esc(href(url, 0))}">{esc(title)}</a></h3>
+<p class="small" style="line-height:1.8;color:var(--ink-2)">{esc(a.get("excerpt") or "")}</p>
+<div class="card__foot"><a class="link-arrow" href="{esc(href(url, 0))}">閱讀完整文章 →</a></div>
+</div></article>''')
+    return f'''<section class="sect" aria-label="專業美髮知識"><div class="wrap">
+{sec_head("HAIR JOURNAL", "專業美髮知識", "讓專業不只停留在沙龍，更走進你的日常。", "Journal")}
+<style>@media(max-width:767px){{.home-journal-grid{{grid-template-columns:minmax(0,1fr)!important}}}}</style>
+<div class="grid g-3 home-journal-grid mt-4">{"".join(cards)}</div>
+<div class="btn-row mt-4">{btn("探索更多美髮知識", "/journal/", 0, kind="btn--ghost")}</div>
+</div></section>'''
+
+
 def build_home():
     h = PAGES["home"]
     hv = h["hero"]
@@ -87,13 +122,7 @@ def build_home():
 <div class="mt-4"><p class="lead">每一次的信任，都是我們持續進步的動力。歡迎了解顧客對 HD Hope 的真實評價。</p></div>
 <div class="btn-row mt-3">{btn("查看顧客評價", "/reviews/", 0, kind="btn--ghost")}</div>
 </div></section>'''
-    jo = h["journal"]
-    rows = "".join(article_row(a, 0) for a in ARTICLES["items"][:3])
-    journal = f'''<section class="sect"><div class="wrap">
-{sec_head(jo["eyebrow"], jo["title"], jo["aside"], "Journal")}
-<div class="article-list mt-4">{rows}</div>
-<div class="btn-row mt-4">{btn("看全部文章", "/journal/", 0, kind="btn--ghost")}</div>
-</div></section>'''
+    journal = home_featured_journal()
 
     cc = h["contactCta"]
     cta = f'''<section class="sect bg-ink"><div class="wrap split split--5-7">
@@ -106,7 +135,7 @@ def build_home():
 
     page("/", "HD Hope Hair Salon｜桃園美髮沙龍・霧感染髮・縮毛矯正・燙髮",
          "HD Hope Hair Salon 位於桃園市桃園區成功路一段，提供霧感染髮、漂染特殊色、縮毛矯正、燙髮、護髮與男士剪燙。以專業技術與溫暖服務，成就每一次美好的改變。營業時間 12:00–20:00，每週一公休。",
-         hero + phil + pillars + services + gal + stylists + reviews + journal + cta,
+         hero + phil + pillars + services + gal + stylists + journal + reviews + cta,
          0, current="/", priority="1.0", changefreq="weekly",
          blocks=[SALON_LD, {"@context": "https://schema.org", "@type": "WebSite",
                             "name": "HD Hope Hair Salon", "url": DOMAIN + "/",
