@@ -33,7 +33,7 @@ def build_journal_index():
             + '</div></section>')
     page("/journal/", "美髮知識｜染髮・漂髮・縮毛矯正・燙髮的專業說明",
          "HD Hope Hair Salon 美髮知識專欄：霧感染髮、漂染與特殊色、縮毛矯正、燙髮與染後維護的專業說明，內容由桃園店內設計師撰寫與校訂。",
-         body, d, current="/journal/", noindex=True, priority="0.5",
+body, d, current="/journal/", noindex=False, priority="0.5",
          blocks=[breadcrumb_ld([("首頁", "/"), ("美髮知識", "/journal/")])])
 
 
@@ -85,7 +85,7 @@ def build_article(a):
     body.append('</div></section>')
 
     page("/journal/%s/" % a["slug"], a["seoTitle"], a["seoDesc"], "".join(body), d,
-         current="/journal/", noindex=True, priority="0.3", og_type="article",
+current="/journal/", noindex=(a.get("status") != "published"), priority="0.3", og_type="article",
          blocks=[breadcrumb_ld(crumb)])
 
 
@@ -114,7 +114,7 @@ def build_news_index():
                        secondary=("聯絡與預約", "/contact/")))
     page("/news/", "最新消息｜營業時間・活動公告・徵才資訊",
          "HD Hope Hair Salon 最新消息：營業時間調整、活動公告與徵才資訊。臨時異動以官方 LINE 公告為準。",
-         body, d, current="/news/", noindex=True, priority="0.4",
+body, d, current="/news/", noindex=False, priority="0.4",
          blocks=[breadcrumb_ld([("首頁", "/"), ("最新消息", "/news/")])])
 
 
@@ -137,7 +137,7 @@ def build_news_detail(n):
     body.append('</div></section>')
     page("/news/%s/" % n["slug"], n.get("seoTitle") or ("%s｜最新消息" % n["title"]),
          n.get("seoDesc") or "HD Hope Hair Salon 最新消息。",
-         "".join(body), d, current="/news/", noindex=True, priority="0.3",
+"".join(body), d, current="/news/", noindex=(n.get("status") != "published"), priority="0.3",
          blocks=[breadcrumb_ld(crumb)])
 
 
