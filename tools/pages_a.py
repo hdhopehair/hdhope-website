@@ -69,7 +69,6 @@ def build_home():
     ga = h["gallery"]
     gal = f'''<section class="sect bg-2"><div class="wrap">
 {sec_head(ga["eyebrow"], ga["title"], ga["aside"], "Portfolio")}
-<div class="notice mt-4">{esc(PAGES["gallery"].get("note", ""))}</div>
 <div class="grid g-3 mt-4">{"".join(work_card(w, 0) for w in [x for x in WORKS["items"] if x.get("featured_status") == "approved"][:3])}</div>
 <div class="btn-row mt-4">{btn("看全部作品集", "/gallery/", 0, kind="btn--ghost")}</div>
 </div></section>'''
