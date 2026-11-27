@@ -35,6 +35,7 @@ SERVICE_BY_CAT = {
     "cut": "haircut",
     "treatment": "hair-care",
     "mens": "mens-hair",
+    "extensions": "extensions",
 }
 
 CATEGORY_LABELS = {
@@ -45,6 +46,7 @@ CATEGORY_LABELS = {
     "cut": "剪髮",
     "treatment": "護髮",
     "mens": "男士造型",
+    "extensions": "接髮",
 }
 
 BOOKING_NOTE = "指定設計師請在 LINE 訊息中註明設計師姓名；實際可預約時段以店家回覆為準。"
