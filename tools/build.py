@@ -49,28 +49,41 @@ def build_pages():
 
 
 def write_robots():
-    txt = ("User-agent: *\n"
-           "Allow: /\n"
-           "Disallow: /admin/\n"
-           "Disallow: /404.html\n"
-           "\n"
-           "Sitemap: %s/sitemap.xml\n" % DOMAIN)
+    txt = (
+        "User-agent: *\n"
+        "Allow: /\n"
+        "Disallow: /admin/\n"
+        "Disallow: /stylist-admin/\n"
+        "Disallow: /404.html\n"
+        "\n"
+        "Sitemap: %s/sitemap.xml\n" % DOMAIN
+    )
     (ROOT / "robots.txt").write_text(txt, encoding="utf-8")
 
 
 def write_sitemap():
     from xml.sax.saxutils import escape
+
     rows = []
-    pages = sorted([p for p in SP.PAGES_OUT if p.get("indexable")],
-                   key=lambda p: (p["url"].count("/"), p["url"]))
+
+    pages = sorted(
+        [p for p in SP.PAGES_OUT if p.get("indexable")],
+        key=lambda p: (p["url"].count("/"), p["url"])
+    )
+
     for p in pages:
-        rows.append("<url><loc>%s</loc><lastmod>%s</lastmod><changefreq>%s</changefreq>"
-                    "<priority>%s</priority></url>"
-                    % (escape(p["canonical"]), C.BUILD_DATE,
-                       p.get("changefreq", "monthly"), p.get("priority", "0.6")))
-    xml = ('<?xml version="1.0" encoding="UTF-8"?>\n'
-           '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n  '
-           + "\n  ".join(rows) + "\n</urlset>\n")
+        rows.append(
+            "<url><loc>%s</loc></url>"
+            % escape(p["canonical"])
+        )
+
+    xml = (
+        '<?xml version="1.0" encoding="UTF-8"?>\n'
+        '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n  '
+        + "\n  ".join(rows)
+        + "\n</urlset>\n"
+    )
+
     (ROOT / "sitemap.xml").write_text(xml, encoding="utf-8")
 
 
