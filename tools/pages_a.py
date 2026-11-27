@@ -74,8 +74,7 @@ def build_home():
 </div></section>'''
 
     st = h["stylists"]
-    cards = "".join(stylist_card(s, 0) for s in STYLISTS["items"]) + "".join(
-        stylist_slot(n, 0, PAGES["stylistsPage"].get("slotLabel", "版位待補")) for n in range(2, 4))
+    cards = "".join(stylist_card(s, 0) for s in STYLISTS["items"])
     stylists = f'''<section class="sect"><div class="wrap">
 {sec_head(st["eyebrow"], st["title"], st["aside"], "Stylists")}
 <div class="grid g-3 mt-5">{cards}</div>
