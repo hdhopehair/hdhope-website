@@ -64,7 +64,7 @@ def build_stylist_detail(s):
     arts = [ARTICLE_BY_SLUG[x] for x in (s.get("articleSlugs") or []) if x in ARTICLE_BY_SLUG]
     crumbs = [("首頁", "/"), ("設計師團隊", "/stylists/"), (s["name"], None)]
 
-       works_html = ('<div class="grid g-3">%s</div>' % "".join(work_card(w, d) for w in works)) if works \
+    works_html = ('<div class="grid g-3">%s</div>' % "".join(work_card(w, d) for w in works)) if works \
         else notice("更多造型作品將陸續更新，歡迎透過 LINE 與設計師交流你的髮型需求。",
                     title="更多造型靈感")
     arts_html = ('<div class="article-list">%s</div>' % "".join(article_row(a, d) for a in arts)) if arts \
