@@ -97,11 +97,11 @@ def href(url, depth=0):
         return PHONE_LINK
     p = url.strip("/")
     if not p:
-        return _prefix(depth) + "index.html"
+        return _prefix(depth)
     # 靜態資產（含副檔名）直接回傳，不接 index.html
     if "." in p.rsplit("/", 1)[-1]:
         return _prefix(depth) + p
-    return _prefix(depth) + "%s/index.html" % p
+    return _prefix(depth) + "%s/" % p
 
 
 def root_abs(url):
