@@ -37,25 +37,18 @@ def build_stylists_index():
     crumbs = [("首頁", "/"), ("設計師團隊", None)]
     items = STYLISTS["items"]
     cards = "".join(stylist_card(s, d) for s in items)
-    slots = "".join(stylist_slot(n, d, pg["slotLabel"])
-                   for n in range(len(items) + 1, max(STYLISTS.get("slots", 7), len(items)) + 1))
     body = (page_head(pg, d, crumbs)
             + '<section class="sect"><div class="wrap">'
             + '<div class="grid g-3">%s</div>' % cards
-            + '<div class="notice mt-5">%s</div>' % notice(STYLISTS["capacityNote"], title="名單擴充")[len(''):].replace('<div class="notice">', '').replace('</div>', '', 1)
             + '</div></section>'
-            + '<section class="sect bg-2"><div class="wrap">'
-            + sec_head("OPEN SLOTS", pg["slotsTitle"], pg["slotsNote"], "Team")
-            + '<div class="grid g-4 mt-5">%s</div>' % slots
-            + '</div></section>'
-            + cta_band("想看某位設計師的作品？", "把你的需求（例如：想剪短、想漂淺、想解決自然捲）傳到 LINE，我們會依髮況推薦適合的設計師。",
+            + cta_band("找到適合你的設計師", "每位設計師都有不同的專業技術與美感風格，歡迎透過 LINE 告訴我們你的需求，讓我們為你推薦適合的設計師。",
                        d, secondary=("預約與聯絡", "/contact/")))
     ld = {"@context": "https://schema.org", "@type": "ItemList",
           "name": "HD Hope Hair Salon 設計師團隊",
           "itemListElement": [{"@type": "ListItem", "position": i + 1, "name": s["name"],
                                "url": "%s/stylists/%s/" % (DOMAIN, s["slug"])}
                               for i, s in enumerate(items)]}
-    page("/stylists/", "設計師團隊｜HD Hope Hair Salon 桃園", "HD Hope Hair Salon 的設計師團隊：每位設計師都有獨立的個人頁面、專長、價目與預約入口。設計師名單與個人資料待店家提供，目前頁面為可運作的範本。",
+    page("/stylists/", "設計師團隊｜HD Hope Hair Salon 桃園", "認識 HD Hope Hair Salon 桃園專業美髮設計師團隊，探索霧感染髮、漂染特殊色、縮毛矯正、燙髮與男士造型。查看設計師專長、作品、個人價目及預約資訊。",
          body, d, current="/stylists/", priority="0.8",
          blocks=[SALON_LD, ld, breadcrumb_ld(crumbs)])
 
@@ -71,11 +64,11 @@ def build_stylist_detail(s):
     arts = [ARTICLE_BY_SLUG[x] for x in (s.get("articleSlugs") or []) if x in ARTICLE_BY_SLUG]
     crumbs = [("首頁", "/"), ("設計師團隊", "/stylists/"), (s["name"], None)]
 
-    works_html = ('<div class="grid g-3">%s</div>' % "".join(work_card(w, d) for w in works)) if works \
-        else notice("這位設計師的作品照尚未上傳。作品僅在店家提供、且顧客同意刊登後才會上線，不以示意圖或生成影像代替真實作品。",
-                    title="作品待補")
+       works_html = ('<div class="grid g-3">%s</div>' % "".join(work_card(w, d) for w in works)) if works \
+        else notice("更多造型作品將陸續更新，歡迎透過 LINE 與設計師交流你的髮型需求。",
+                    title="更多造型靈感")
     arts_html = ('<div class="article-list">%s</div>' % "".join(article_row(a, d) for a in arts)) if arts \
-        else notice("這位設計師的專業文章尚在撰寫中。文章會由設計師本人或店家內容團隊提供後發布。", title="文章待補")
+        else notice("更多美髮知識與日常整理技巧將陸續分享。", title="專業美髮分享")
 
     rows = [
         ("職稱", esc(s.get("title", ""))),
@@ -108,7 +101,7 @@ def build_stylist_detail(s):
     body.append('<span class="eyebrow">STYLIST · 設計師個人頁</span>')
     body.append('<h1 class="mt-2">%s</h1>' % esc(s["name"]))
     body.append('<p class="h4 muted mt-1">%s</p>' % esc(s.get("title", "")))
-    body.append('<div class="filters mt-2">%s%s</div>' % (_tags(s.get("tags"), "chip"), status_badge(s.get("status", ""))))
+    body.append('<div class="filters mt-2">%s</div>' % _tags(s.get("tags"), "chip"))
     body.append('<p class="serif mt-3" style="font-size:1.16rem;line-height:1.8;max-width:30em">%s</p>'
                 % esc(s.get("philosophy", "")))
     body.append('<div class="btn-row mt-3">%s%s</div>'
@@ -129,7 +122,7 @@ def build_stylist_detail(s):
     body.append('</div></div></section>')
 
     body.append('<section class="sect sect--tight"><div class="wrap">')
-    body.append(sec_head("PRICE", "個人服務價目", "實際價格依髮長、髮量與髮況調整；此表為設計師個人價目，尚未經店家核准前一律標示待確認。", "Price"))
+    body.append(sec_head("PRICE", "個人服務價目", "實際費用依髮長、髮量、髮況及服務需求而定，設計師將於施作前與你確認完整費用。", "Price"))
     body.append('<div class="mt-4">%s</div>' % price_table(s.get("prices") or [], caption="%s・個人價目" % s["name"]))
     body.append('</div></section>')
 
@@ -172,14 +165,13 @@ def build_gallery_index():
     body = []
     body.append('<section class="sect"><div class="wrap">')
     body.append(page_head(g, d, [("首頁", "/"), ("髮型作品集", None)], wrap=False))
-    body.append('<div class="mt-2">%s</div>' % notice(g.get("note", ""), title="作品照片待補"))
     body.append('<div data-filter-scope class="mt-4">')
     body.append('<div class="filters" data-filter-group>%s%s</div>' % ("".join(chips), count))
     body.append('<div class="grid g-3">%s</div>' % cards)
     body.append('</div>')
     body.append('<div class="notice mt-5"><div class="notice__body"><h3>怎麼看這些作品</h3>'
                 '<p>每件作品都標記服務類別、髮況與設計師，方便你判斷「這個顏色／這個長度」是否適合自己。'
-                '照片上線後，作品頁會同步顯示使用的服務與可預約的設計師。</p></div></div>')
+                '點選喜歡的作品，即可了解相關造型資訊，並進一步諮詢與預約。</p></div></div>')
     body.append('</div></section>')
     body.append(cta_band("想做出你在作品集裡看到的樣子？",
                          "把你想參考的照片直接傳到 LINE，我們會依你的髮況告訴你可行的程度、需要幾次療程與大約時間。",
@@ -214,13 +206,13 @@ def build_work_detail(w):
         rows.append(("髮色說明", esc(w["colorDesc"])))
     if w.get("bleached"):
         rows.append(("漂髮狀況", esc(w["bleached"])))
-    rows.append(("完成日期", esc(w.get("completedAt") or "待店家提供")))
-    rows.append(("刊登狀態", status_badge(w.get("status", "")) or '<span class="small muted">—</span>'))
+    if w.get("completedAt"):
+        rows.append(("完成日期", esc(w["completedAt"])))
     info = "".join('<div class="info-row"><div class="info-row__k">%s</div><div class="info-row__v">%s</div></div>' % r for r in rows)
 
     sibs = [x for x in WORKS["items"] if x.get("category") == w.get("category") and x["slug"] != w["slug"]][:3]
     sib_html = ('<div class="grid g-3">%s</div>' % "".join(work_card(x, d) for x in sibs)) if sibs \
-        else notice("同類作品尚待補登。", title="更多作品")
+        else notice("更多造型靈感將陸續更新，歡迎瀏覽其他髮型作品。", title="更多作品")
 
     body = []
     body.append('<section class="sect"><div class="wrap">')
@@ -263,37 +255,25 @@ def build_work_detail(w):
 def build_reviews_page():
     pg = PAGES["reviews"]
     d = 1
-    howto = REVIEWS.get("howTo") or []
-    lis = []
-    for i, x in enumerate(howto, start=1):
-        text = x.get("t", "") if isinstance(x, dict) else str(x)
-        desc = x.get("d", "") if isinstance(x, dict) else ""
-        lis.append("<li><strong>%02d</strong> %s%s</li>" % (i, esc(text),
-                   ('<span class="small muted"> %s</span>' % esc(desc)) if desc else ""))
-    pol = "".join("<li>%s</li>" % esc(x) for x in (pg.get("policy") or []))
     body = []
     body.append('<section class="sect"><div class="wrap">')
     body.append(page_head(pg, d, [("首頁", "/"), ("顧客評價", None)],
-                          aside=REVIEWS.get("note", ""), wrap=False))
-    body.append('<div class="mt-4">%s</div>' % empty_state(pg.get("emptyTitle", "尚未串接 Google 評論"),
-                                                          pg.get("emptyBody", ""),
-                                                          note="狀態：待串接（pending integration）"))
-    body.append('</div></section>')
-    body.append('<section class="sect sect--tight bg-2"><div class="wrap split split--7-5">')
-    body.append('<div class="reveal"><span class="eyebrow">HOW IT WORKS</span>'
-                '<h2 class="mt-2" style="font-size:var(--step-2)">%s</h2>'
-                '<ol class="prose mt-3" style="list-style:decimal;padding-left:1.2em">%s</ol></div>'
-                % (esc(pg.get("howToTitle", "開通步驟")), "".join(lis)))
-    body.append('<div class="reveal plain-card"><span class="eyebrow eyebrow--ink">POLICY</span>'
-                '<h3 class="h4 mt-2">我們的評價原則</h3><ul class="prose mt-3" style="list-style:disc;padding-left:1.2em">%s</ul>'
-                '<p class="small muted mt-3">這一頁不會出現示範用的星等或評論數量。只有在取得可追溯來源後，才會顯示真實評分。</p></div>'
-                % pol)
-    body.append('</div></section>')
-    body.append(cta_band("想了解實際的服務感受？",
-                         "歡迎直接看 Google 商家檔案上的公開評論，或到店諮詢時詢問設計師過去處理過的類似髮況。",
+                          aside="", wrap=False))
+    body.append('<div class="plain-card mt-4">')
+    body.append('<span class="eyebrow">GOOGLE REVIEWS</span>')
+    body.append('<h2 class="mt-2">每一份信任，都是我們前進的動力</h2>')
+    body.append('<p class="lead mt-3">我們重視每一位顧客的服務體驗，從髮況諮詢、技術細節到日常整理，都希望帶給你安心且有質感的美髮體驗。</p>')
+    body.append('<p class="mt-3">歡迎透過 Google 商家檔案，了解顧客的真實服務評價與分享。</p>')
+    body.append('<div class="btn-row mt-4">%s</div>' % btn(
+        "查看 Google 顧客評價",
+        "https://www.google.com/maps/search/?api=1&query=HD+Hope+Hair+Salon",
+        d))
+    body.append('</div></div></section>')
+    body.append(cta_band("期待與你的每一次相遇",
+                         "無論是想改變髮色、改善髮質，還是尋找適合自己的髮型，都歡迎透過 LINE 與我們聊聊。",
                          d, secondary=("聯絡與交通資訊", "/contact/")))
     page("/reviews/",
-         "顧客評價｜真實評論與服務回饋",
-         "HD Hope Hair Salon 顧客評價頁。我們只顯示可追溯來源的真實評論；在取得店家授權與 Google 商家評論串接完成前，本頁維持空白，不以虛構姓名、星等或評論數量填充。",
+         "顧客評價｜HD Hope Hair Salon 桃園美髮沙龍",
+         "了解 HD Hope Hair Salon 桃園美髮沙龍的真實顧客評價與服務體驗，探索專業染髮、漂染、縮毛矯正、燙髮及護髮服務。",
          "".join(body), d, current="/reviews/", priority="0.7",
          blocks=[SALON_LD, breadcrumb_ld([("首頁", "/"), ("顧客評價", "/reviews/")])])
