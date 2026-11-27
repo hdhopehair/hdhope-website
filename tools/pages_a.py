@@ -84,10 +84,8 @@ def build_home():
     rv = h["reviews"]
     reviews = f'''<section class="sect sect--tight bg-2"><div class="wrap">
 {sec_head(rv["eyebrow"], rv["title"], rv["aside"], "Reviews")}
-<div class="mt-4">{empty_state(PAGES["reviews"].get("emptyTitle", "尚未串接 Google 評論"),
-                              PAGES["reviews"].get("emptyBody", ""), note="狀態：待串接")}</div>
-<div class="btn-row mt-3">{btn("評價與開通說明", "/reviews/", 0, kind="btn--ghost")}</div>
-</div></section>'''
+<div class="mt-4"><p class="lead">每一次的信任，都是我們持續進步的動力。歡迎了解顧客對 HD Hope 的真實評價。</p></div>
+<div class="btn-row mt-3">{btn("查看顧客評價", "/reviews/", 0, kind="btn--ghost")}</div>
 
     jo = h["journal"]
     rows = "".join(article_row(a, 0) for a in ARTICLES["items"][:3])
@@ -193,7 +191,7 @@ def build_services_index():
             + f'''<section class="sect"><div class="wrap">
 <div class="grid g-3">{tiles}</div>
 <div class="notice mt-5"><div class="notice__body"><h3>價格說明</h3>
-<p>{esc(PRICING["publicNote"])}各服務頁的價目表目前皆標示「待店家確認」，正式價目表核准後會同步更新。</p>
+<p>實際費用依髮長、髮量、髮況及服務需求而定，設計師將於施作前與您確認完整費用，讓每一次消費都安心透明。</p>
 </div></div></div></section>'''
             + f'''<section class="sect bg-ink"><div class="wrap split split--5-7">
 <div class="reveal"><span class="eyebrow eyebrow--on-dark">BOOK</span>
@@ -249,8 +247,8 @@ def build_service_detail(s):
                   '<h2 class="mt-2" style="font-size:var(--step-3)">價目與計價方式</h2>'
                   '<p class="mt-3 small" style="color:var(--ink-2);line-height:1.9">髮長、髮量與是否需要'
                   '前置處理都會影響價格。施作前我們會先報價，確認後才開始。</p>'
-                  '<p class="mt-3 small muted">正式價目表由店家核准後更新，未定案項目一律標示「待店家確認」，'
-                  '不自行推算金額。</p></div><div class="reveal">%s</div></div></section>'
+                  '<p class="mt-3 small muted">如有特殊髮況或客製化需求，歡迎透過 LINE 與設計師進一步諮詢。</p>'
+                  '</div><div class="reveal">%s</div></div></section>'
                   % (price,))
 
     ws = [w for w in WORKS["items"] if w.get("serviceSlug") == slug]
@@ -258,11 +256,11 @@ def build_service_detail(s):
         works = '<div class="grid g-3 mt-5">%s</div>' % "".join(work_card(w, depth) for w in ws)
     else:
         works = ('<div class="mt-5">%s</div>' % notice(
-            "此服務的作品照片尚未取得授權，因此先以空白版位呈現，不以生成影像代替顧客案例。",
-            "作品照片待補"))
+            "更多造型作品將陸續更新，歡迎透過 LINE 諮詢適合您的髮型。",
+            "更多造型靈感"))
     works_html = ('<section class="sect"><div class="wrap">%s%s'
                   '<div class="mt-4"><a class="link-arrow" href="%s">看更多作品 →</a></div></div></section>'
-                  % (sec_head("WORKS", s["name"] + "作品", "照片與髮況說明待店家提供授權後上傳。"),
+                  % (sec_head("WORKS", s["name"] + "作品", "探索不同髮況與風格的造型靈感。"),
                      works, esc(href("/gallery/", depth))))
 
     sty = [t for t in STYLISTS["items"] if s["name"] in (t.get("specialties") or [])]
@@ -273,8 +271,8 @@ def build_service_detail(s):
         sty_html = ('<section class="sect bg-2"><div class="wrap">%s<div class="mt-5">%s</div>'
                     '<div class="mt-4"><a class="link-arrow" href="%s">設計師團隊與個人頁 →</a></div></div></section>'
                     % (sec_head("STYLISTS", "提供此服務的設計師"),
-                       notice("設計師名單與個人資料尚待店家提供。系統已建好可擴充的個人頁範本，"
-                              "資料填入後就會列出實際提供此服務的設計師。", "設計師資料待補"),
+                       notice("每位設計師都有不同的專業技術與美感風格，歡迎瀏覽團隊介紹，"
+                              "或透過 LINE 讓我們協助您選擇適合的設計師。", "找到適合您的設計師"),
                        esc(href("/stylists/", depth))))
 
     faq = ('<section class="sect"><div class="wrap split split--5-7">'
