@@ -24,7 +24,6 @@ def build_journal_index():
     rows = "".join(article_row(a, d) for a in ARTICLES["items"])
     body = ('<section class="sect"><div class="wrap">'
             + page_head(pg, d, [("首頁", "/"), ("美髮知識", None)], wrap=False)
-            + '<div class="mt-2">%s</div>' % draft_note("文章")
             + '<div class="article-list mt-5">%s</div>' % rows
             + '<div class="notice mt-5"><div class="notice__body"><h3>我們怎麼寫這些文章</h3>'
               '<p>文章由店家與設計師提供實務經驗，內容團隊整理成可以閱讀的說明。'
@@ -59,9 +58,9 @@ def build_article(a):
     body.append('<div><span class="eyebrow">%s</span>' % esc(cat))
     body.append('<h1 class="mt-2" style="font-size:var(--step-3)">%s</h1>' % esc(a["h1"]))
     body.append('<div class="article-row__meta mt-2" style="border:0;padding:0"><span>%s</span>'
-                '<span>%s</span><span>%s</span>%s</div>'
+                '<span>%s</span><span>%s</span></div>'
                 % (esc(a.get("author", "")), esc(a.get("draftDate", "")),
-                   esc(a.get("readingTime", "")), status_badge(a.get("status", ""))))
+                   esc(a.get("readingTime", ""))))
     body.append('<p class="lead mt-3">%s</p>' % esc(a.get("excerpt", "")))
     body.append(prose(a["body"]))
     body.append('<div class="rule mt-5"></div>')
@@ -107,7 +106,6 @@ def build_news_index():
                             "營業時間調整、活動與徵才資訊都會公布在這裡。正式公告確認後才會上線。")
     body = ('<section class="sect"><div class="wrap">'
             + page_head(pg, d, [("首頁", "/"), ("最新消息", None)], wrap=False)
-            + '<div class="mt-2">%s</div>' % draft_note("公告")
             + '<div class="grid g-2 mt-5">%s</div>' % cards
             + '</div></section>'
             + cta_band("想收到第一手消息？", "營業時間異動與臨時公告會優先發在官方 LINE，建議把帳號加入好友。", d,
@@ -124,11 +122,12 @@ def build_news_detail(n):
     body = []
     body.append('<section class="sect"><div class="wrap wrap--narrow">')
     body.append(breadcrumb(crumb, d))
-    body.append('<div class="mt-4">%s</div>' % draft_note("公告"))
+    if n.get("status") == "draft":
+        body.append('<div class="mt-4">%s</div>' % draft_note("公告"))
     body.append('<span class="eyebrow mt-4">%s</span>' % esc(NEWS_CATS.get(n.get("category", ""), n.get("category", ""))))
     body.append('<h1 class="mt-2" style="font-size:var(--step-3)">%s</h1>' % esc(n["title"]))
-    body.append('<div class="article-row__meta mt-2" style="border:0;padding:0"><span>%s</span>%s</div>'
-                % (esc(n.get("date", "")), status_badge(n.get("status", ""))))
+    body.append('<div class="article-row__meta mt-2" style="border:0;padding:0"><span>%s</span></div>'
+                % esc(n.get("date", "")))
     body.append('<div class="mt-4">%s</div>' % prose(n.get("body") or []))
     body.append('<div class="rule mt-5"></div>')
     body.append('<div class="btn-row mt-3">%s%s</div>'
@@ -174,9 +173,8 @@ def build_careers():
     body.append('</div></section>')
 
     body.append('<section class="sect"><div class="wrap">')
-    body.append(sec_head("BENEFITS", offer["h2"], "制度內容尚待店家確認，確認後會更新這一區，不先列出未定案的數字。", "What we offer"))
+    body.append(sec_head("BENEFITS", offer["h2"], "我們重視每一位夥伴的專業成長，期待與熱愛美髮的你一起進步。", "What we offer"))
     body.append('<div class="grid g-2 mt-4">%s</div>' % offer_cards)
-    body.append('<div class="mt-3">%s</div>' % notice(offer.get("note", ""), title="制度內容待確認"))
     body.append('</div></section>')
 
     body.append('<section class="sect sect--tight"><div class="wrap">')
@@ -367,7 +365,7 @@ def build_privacy():
               % btn("聯絡與預約", "/contact/", d, kind="btn--ghost")
             + '</div></div></section>')
     page("/privacy/", "隱私權政策｜資料蒐集與使用說明｜HD Hope Hair Salon",
-         "HD Hope Hair Salon 官方網站隱私權政策：說明預約聯繫、服務諮詢與招募評估時的資料蒐集目的、項目、利用期間與你的權利。第一版網站未啟用會員、金流或追蹤碼。",
+         "HD Hope Hair Salon 官方網站隱私權政策：說明預約聯繫、服務諮詢與人才招募時的個人資料蒐集、使用方式及相關權利。",
          body, d, current="/privacy/", priority="0.3", changefreq="yearly",
          blocks=[breadcrumb_ld([("首頁", "/"), ("隱私權政策", "/privacy/")])])
 
@@ -389,29 +387,31 @@ def build_sitemap_page():
                                  ("設計師團隊", "/stylists/"), ("顧客評價", "/reviews/"),
                                  ("徵才招募", "/careers/"), ("常見問題", "/faq/"),
                                  ("聯絡與預約", "/contact/")]))
-    svc_links = [(("%s %s" % (s.get("num", ""), s["name"])).strip(), "/services/%s/" % s["slug"])
-                 for s in SERVICES["items"]]
-    groups.append(group("專業服務", svc_links))
-    st_links = [("%s（%s）" % (s["name"], s.get("title", "")), "/stylists/%s/" % s["slug"]) for s in STYLISTS["items"]]
-    groups.append(group("設計師個人頁", st_links, "目前僅有可直接運作的範本頁；正式設計師名單待店家提供。"))
+    st_links = [
+        ("%s（%s）" % (s["name"], s.get("title", "")), "/stylists/%s/" % s["slug"])
+        for s in STYLISTS["items"] if s.get("status") != "sample"
+    ]
+    groups.append(group("設計師個人頁", st_links))
+
     groups.append(group("髮型作品集", [("作品集首頁", "/gallery/")] +
                         [("%s（%s）" % (w["title"], WORK_CATS.get(w.get("category", ""), "")),
-                          "/gallery/%s/" % w["slug"]) for w in WORKS["items"]],
-                        "作品照片與資料待補，以下頁面目前為 noindex，不會出現在搜尋結果。"))
+                          "/gallery/%s/" % w["slug"]) for w in WORKS["items"]
+                         if w.get("status") == "published"]))
+
     groups.append(group("美髮知識", [("文章列表", "/journal/")] +
-                        [("%s（草稿）" % a["title"], "/journal/%s/" % a["slug"]) for a in ARTICLES["items"]],
-                        "文章為草稿狀態，未列入 Sitemap，也不會被搜尋引擎索引。"))
+                        [(a["title"], "/journal/%s/" % a["slug"]) for a in ARTICLES["items"]
+                         if a.get("status") == "published"]))
+
     groups.append(group("最新消息", [("消息列表", "/news/")] +
-                        [("%s（草稿）" % n["title"], "/news/%s/" % n["slug"]) for n in NEWS["items"]],
-                        "目前僅有後台範本項目，尚未發布。"))
-    groups.append(group("其他", [("隱私權政策", "/privacy/"), ("網站地圖", "/sitemap/"),
-                               ("後台管理（僅供店家使用）", "/admin/")]))
+                        [(n["title"], "/news/%s/" % n["slug"]) for n in NEWS["items"]
+                         if n.get("status") == "published"]))
+
+    groups.append(group("其他", [("隱私權政策", "/privacy/"),
+                               ("網站地圖", "/sitemap/")]))
 
     body = ('<section class="sect"><div class="wrap">'
             + page_head(pg, d, [("首頁", "/"), ("網站地圖", None)], wrap=False)
             + "".join(groups)
-            + '<div class="mt-5">%s</div>' % notice("標示為草稿的頁面已設為 noindex，也不會寫入 sitemap.xml。"
-                                                    "資料補齊後於後台改為發布，重新產生網站即可。", title="關於索引狀態")
             + '</div></section>')
     page("/sitemap/", "網站地圖｜全站頁面一覽｜HD Hope Hair Salon",
          "HD Hope Hair Salon 網站地圖：一次瀏覽品牌故事、七項專業服務、設計師團隊、髮型作品集、美髮知識、最新消息與聯絡預約等所有頁面。",
