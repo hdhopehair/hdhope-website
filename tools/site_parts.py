@@ -212,7 +212,7 @@ def price_table(prices, caption="", note=""):
         head += '<p class="price-note">%s</p>' % esc(PRICING.get("publicNote", ""))
     elif note:
         head += '<p class="price-note">%s</p>' % esc(note)
-    return head + '</div>'
+    return head
 
 
 def faq_list(items, start=1):
