@@ -396,7 +396,7 @@ def build_sitemap_page():
     groups.append(group("髮型作品集", [("作品集首頁", "/gallery/")] +
                         [("%s（%s）" % (w["title"], WORK_CATS.get(w.get("category", ""), "")),
                           "/gallery/%s/" % w["slug"]) for w in WORKS["items"]
-                         if w.get("status") == "published"]))
+                         if w.get("status") in ("live", "published")]))
 
     groups.append(group("美髮知識", [("文章列表", "/journal/")] +
                         [(a["title"], "/journal/%s/" % a["slug"]) for a in ARTICLES["items"]
