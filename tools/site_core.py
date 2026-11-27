@@ -248,15 +248,37 @@ def breadcrumb_ld(items):
     })
 
 
+GOOGLE_BUSINESS_URL = (
+    CONTACT.get("googleBusinessUrl")
+    or REVIEWS.get("googleBusinessUrl")
+    or ""
+)
+
+SALON_IMAGES = [
+    root_abs(path)
+    for path in [
+        (IMAGES.get("storeEntrance") or {}).get("path", ""),
+        (IMAGES.get("storeReception") or {}).get("path", ""),
+        SEO.get("ogImage", "")
+    ]
+    if path and exists(path)
+]
+
+SALON_LOGO = (BRAND.get("logo") or {}).get("path", "")
+
 SALON_LD = {
     "@context": "https://schema.org",
     "@type": "HairSalon",
     "@id": DOMAIN + "/#salon",
     "name": BRAND["name"],
-    "alternateName": BRAND.get("nameZh", ""),
+    "alternateName": [
+        name for name in [
+            BRAND.get("nameShort", ""),
+            BRAND.get("nameZh", "")
+        ] if name
+    ],
     "url": DOMAIN + "/",
-    "image": root_abs(SEO.get("ogImage", "")),
-    "description": BRAND.get("intro", ""),
+    "description": SEO.get("defaultDescription") or BRAND.get("intro", ""),
     "slogan": BRAND.get("slogan", ""),
     "telephone": CONTACT.get("phoneLink", "").replace("tel:", ""),
     "address": {
@@ -264,18 +286,77 @@ SALON_LD = {
         "streetAddress": CONTACT.get("streetAddress", ""),
         "addressLocality": CONTACT.get("addressLocality", ""),
         "addressRegion": CONTACT.get("addressRegion", ""),
-        "addressCountry": CONTACT.get("addressCountry", ""),
+        "addressCountry": CONTACT.get("addressCountry", "TW"),
     },
     "openingHoursSpecification": [{
         "@type": "OpeningHoursSpecification",
-        "dayOfWeek": ["Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"],
+        "dayOfWeek": [
+            "Tuesday",
+            "Wednesday",
+            "Thursday",
+            "Friday",
+            "Saturday",
+            "Sunday"
+        ],
         "opens": CONTACT.get("opens", "12:00"),
         "closes": CONTACT.get("closes", "20:00"),
     }],
-    "sameAs": [x for x in [IG_URL] if x],
+    "sameAs": [
+        x for x in [
+            IG_URL,
+            GOOGLE_BUSINESS_URL
+        ] if x
+    ],
+    "areaServed": {
+        "@type": "City",
+        "name": "桃園市"
+    },
+    "hasOfferCatalog": {
+        "@type": "OfferCatalog",
+        "name": "HD Hope Hair Salon 專業美髮服務",
+        "itemListElement": [
+            {
+                "@type": "Offer",
+                "itemOffered": {
+                    "@type": "Service",
+                    "name": s["name"],
+                    "url": DOMAIN + "/services/" + s["slug"] + "/",
+                    "provider": {
+                        "@id": DOMAIN + "/#salon"
+                    }
+                }
+            }
+            for s in SERVICES["items"]
+        ]
+    }
 }
 
+if GOOGLE_BUSINESS_URL:
+    SALON_LD["hasMap"] = GOOGLE_BUSINESS_URL
+
+if SALON_IMAGES:
+    SALON_LD["image"] = list(dict.fromkeys(SALON_IMAGES))
+
+if SALON_LOGO and exists(SALON_LOGO):
+    SALON_LD["logo"] = root_abs(SALON_LOGO)
+
+
 WEBSITE_LD = {
+    "@context": "https://schema.org",
+    "@type": "WebSite",
+    "@id": DOMAIN + "/#website",
+    "url": DOMAIN + "/",
+    "name": BRAND["name"],
+    "alternateName": BRAND.get("nameShort", ""),
+    "description": SEO.get("defaultDescription", ""),
+    "inLanguage": BRAND.get("locale", "zh-Hant-TW"),
+    "publisher": {
+        "@id": DOMAIN + "/#salon"
+    },
+    "about": {
+        "@id": DOMAIN + "/#salon"
+    },
+}
     "@context": "https://schema.org",
     "@type": "WebSite",
     "@id": DOMAIN + "/#website",
