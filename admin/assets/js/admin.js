@@ -205,6 +205,7 @@ var NAV = [
   ["stylists", "設計師"],
   ["works", "作品集"],
   ["reviews", "待審核作品"],
+  ["articles", "文章管理"],
   ["media", "媒體庫"],
   ["settings", "網站設定"],
   ["account", "帳號"],
@@ -436,6 +437,7 @@ function renderView() {
       stylists: viewStylists,
       works: viewWorks,
       reviews: viewReviews,
+      articles: viewArticles,
       media: viewMedia,
       settings: viewSettings,
       account: viewAccount,
@@ -491,6 +493,43 @@ function renderView() {
   function v(id) { var n = $(id); return n ? String(n.value).trim() : ""; }
   function lines(s) { return String(s || "").split(/\n/).map(function (x) { return x.trim(); }).filter(Boolean); }
   function num(vv, d) { var n = parseInt(vv, 10); return isNaN(n) ? d : n; }
+
+  /* 文章管理：沿用既有登入、RLS、媒體庫與抽屜 */
+  var articleCats = [["color","染髮知識"],["bleach","漂髮知識"],["straightening","縮毛矯正"],["perm","燙髮知識"],["care","護髮知識"],["mens","男士造型"],["extensions","接髮知識"],["scalp","頭皮養護"],["basics","美髮基礎"]];
+  var articleStatuses = [["draft","草稿"],["published","已發布"],["hidden","已下架"]];
+  async function viewArticles(root) {
+    try {
+      var result = await Promise.all([api('/articles?select=*&order=sort_order.asc,updated_at.desc'),loadStylists()]);
+      if(S.view !== 'articles') return;
+      var rows = result[0] || [];
+      root.innerHTML = '<div class="card"><div class="toolbar"><h2>文章管理</h2><div class="grow"></div><button class="btn" id="aNew">＋ 新增文章</button></div><p class="hint">草稿不會同步到官網。發布、下架後等待自動重建；圖片桶為公開空間。</p><div class="grid2">'+inp('aSearch','搜尋','','search')+sel('aFilter','狀態','',[['','全部']].concat(articleStatuses))+'</div><div id="aList"></div></div>';
+      function draw(){
+        var list=$('aList'); list.innerHTML='';
+        var filtered=rows.filter(function(r){return (!v('aFilter')||r.status===v('aFilter')) && [r.title,r.slug,r.author].join(' ').toLowerCase().includes(v('aSearch').toLowerCase());});
+        if(!filtered.length) list.textContent='目前沒有符合條件的文章';
+        filtered.forEach(function(r){var card=el('div','card'); card.appendChild(el('h3','',esc(r.title||r.slug))); card.appendChild(el('p','hint',statusPill(r.status)+' · '+esc(r.author||'')+' · '+esc(r.slug))); var b=el('button','btn btn--ghost btn--sm','編輯文章'); b.onclick=function(){editArticle(r,rows);}; card.appendChild(b); list.appendChild(card);});
+      }
+      $('aNew').onclick=function(){editArticle(null,rows);}; $('aSearch').oninput=draw; $('aFilter').onchange=draw; draw();
+    }catch(e){fail(root,e);}
+  }
+  function editArticle(row, rows){
+    var d=row||{status:'draft',category:'basics',reading_time:5,body:[]};
+    var blocks=JSON.parse(JSON.stringify(d.body||[]));
+    var uploading=0;
+    openDrawer(row?'編輯文章':'新增文章',function(eb,ef){
+      eb.innerHTML=inp('aTitle','文章標題（必填）',d.title)+inp('aSlug','網址代稱（英文、數字及連字號）',d.slug,'text','發布後建議不要更改網址。')+inp('aH1','頁面主標題（留空沿用標題）',d.h1)+sel('aCat','分類',d.category,articleCats)+sel('aStatus','發布狀態',d.status,articleStatuses)+sel('aSty','作者設計師',d.stylist_id||'',[['','品牌作者']].concat(S.stylists.map(function(s){return [s.id,s.name||s.slug];})))+inp('aAuthor','作者名稱',d.author||'HD Hope 內容團隊')+txa('aExcerpt','文章摘要',d.excerpt,'',3)+inp('aHero','封面圖片路徑',d.hero_image)+inp('aAlt','封面替代文字',d.hero_alt)+'<button class="btn btn--ghost" id="aCover">上傳封面</button><div id="aPreview"></div><h3>文章內文</h3><div id="aBlocks"></div><div id="aAdd" class="btn-row"></div><h3>SEO 與相關內容</h3>'+inp('aSeoTitle','SEO 標題',d.seo_title)+txa('aSeoDesc','SEO 描述',d.seo_desc,'',3)+txa('aKeywords','關鍵字（每行一個）',(d.keywords||[]).join('\n'))+inp('aTime','閱讀分鐘',d.reading_time||5,'number')+inp('aSort','排序',d.sort_order||0,'number')+txa('aServices','相關服務網址代稱（每行一個）',(d.related_services||[]).join('\n'),'hair-color、bleach-color、hair-straightening、perm、hair-care、mens-hair、haircut、extensions')+txa('aRelated','相關文章網址代稱（每行一個）',(d.related_articles||[]).join('\n'),rows.filter(function(r){return r.status==='published'&&r.id!==d.id;}).map(function(r){return r.slug;}).join('、'))+sel('aFeatured','首頁精選（首頁功能待串接）',d.featured?'yes':'no',[['no','否'],['yes','是']]);
+      function button(parent,label,fn){var b=el('button','btn btn--ghost btn--sm',label);b.type='button';b.onclick=fn;parent.appendChild(b);return b;}
+      function upload(done){var f=document.createElement('input');f.type='file';f.accept='image/jpeg,image/png,image/webp';f.onchange=async function(){if(!f.files[0])return;if(f.files[0].size>12*1024*1024){toast('圖片不可超過 12MB','err');return;}uploading++;try{var r=await uploadImage(f.files[0],'article','');done(r.path);toast('圖片已上傳','ok');}catch(e){toast(e.message,'err');}finally{uploading--;}};f.click();}
+      function preview(){var p=$('aPreview');if(!p)return;p.innerHTML='';if(v('aHero')){var im=document.createElement('img');im.src=photoURL(v('aHero'),false);im.alt=v('aAlt');im.style.maxWidth='180px';p.appendChild(im);}}
+      $('aCover').onclick=function(){upload(function(path){if($('aHero')){$('aHero').value=path;preview();}});};$('aHero').onchange=preview;preview();
+      $('aSty').onchange=function(){var s=S.stylists.find(function(x){return x.id===v('aSty');});$('aAuthor').value=s?(s.name||s.slug):'HD Hope 內容團隊';};
+      function drawBlocks(){var host=$('aBlocks');if(!host)return;host.innerHTML='';blocks.forEach(function(block,i){var box=el('div','card');var k=Object.keys(block)[0];box.appendChild(el('b','',esc(({p:'段落',h2:'大標題',h3:'小標題',ul:'條列',quote:'引言',img:'圖片'})[k]||k)));if(k==='img'){var img=block.img||{};block.img=img;['path','alt','caption'].forEach(function(key){var field=el('div','field');var label=el('label','',({path:'圖片路徑',alt:'替代文字',caption:'圖片說明'})[key]);var input=document.createElement('input');input.value=img[key]||'';input.oninput=function(){img[key]=input.value;};field.append(label,input);box.appendChild(field);});button(box,'上傳圖片',function(){upload(function(path){img.path=path;drawBlocks();});});}else if(['p','h2','h3','ul','quote'].includes(k)){var t=document.createElement('textarea');t.rows=k==='p'?5:3;t.style.width='100%';t.value=k==='ul'?(block[k]||[]).join('\n'):block[k]||'';t.oninput=function(){block[k]=k==='ul'?lines(t.value):t.value;};box.appendChild(t);}else{box.appendChild(el('p','hint','此區塊格式未支援編輯，原始資料會保留。'));}button(box,'上移',function(){if(i>0){[blocks[i-1],blocks[i]]=[blocks[i],blocks[i-1]];drawBlocks();}});button(box,'下移',function(){if(i<blocks.length-1){[blocks[i+1],blocks[i]]=[blocks[i],blocks[i+1]];drawBlocks();}});button(box,'移除',function(){blocks.splice(i,1);drawBlocks();});host.appendChild(box);});}
+      [['p','段落'],['h2','大標題'],['h3','小標題'],['ul','條列'],['quote','引言'],['img','圖片']].forEach(function(pair){button($('aAdd'),'＋ '+pair[1],function(){var b={};b[pair[0]]=pair[0]==='img'?{path:'',alt:'',caption:''}:pair[0]==='ul'?[]:'';blocks.push(b);drawBlocks();});});drawBlocks();
+      var save=button(ef,'儲存文章',async function(){if(uploading){toast('請等待圖片上傳完成','err');return;}var title=v('aTitle'),slug=v('aSlug'),status=v('aStatus');if(!title||!/^[a-z0-9]+(-[a-z0-9]+)*$/.test(slug)){toast('請填寫標題及有效英文網址代稱','err');return;}if(status==='published'&&(!blocks.some(function(b){return typeof b.p==='string'&&b.p.trim();})||!v('aExcerpt'))){toast('發布前請填寫摘要及至少一個內文段落','err');return;}if(status==='published'&&!confirmBox('確定儲存並公開文章？'))return;var body={title:title,slug:slug,h1:v('aH1'),category:v('aCat'),status:status,stylist_id:v('aSty')||null,author:v('aAuthor')||'HD Hope 內容團隊',excerpt:v('aExcerpt'),hero_image:v('aHero'),hero_alt:v('aAlt'),body:blocks,seo_title:v('aSeoTitle'),seo_desc:v('aSeoDesc'),keywords:lines(v('aKeywords')),reading_time:Math.max(1,num(v('aTime'),5)),sort_order:num(v('aSort'),0),related_services:lines(v('aServices')),related_articles:lines(v('aRelated')).filter(function(s){return s!==slug;}),featured:v('aFeatured')==='yes'};busy(save,true);try{var saved=await api('/articles'+(row?'?id=eq.'+encodeURIComponent(row.id):''),{method:row?'PATCH':'POST',body:body,prefer:'return=representation'});if(!Array.isArray(saved)||!saved.length)throw Error('沒有儲存任何文章，請檢查權限');toast('文章已儲存','ok');closeDrawer();if(status==='published'||d.status==='published')articleRebuild();setView('articles');}catch(e){toast(e.message,'err');}finally{busy(save,false);}});save.className='btn';
+      if(row)button(ef,'刪除文章',async function(){if(save.disabled||uploading||!confirmBox('確定永久刪除文章？圖片仍保留在媒體庫。'))return;busy(save,true);try{var deleted=await api('/articles?id=eq.'+encodeURIComponent(row.id),{method:'DELETE',prefer:'return=representation'});if(!deleted||!deleted.length)throw Error('未刪除任何文章');closeDrawer();toast('文章已刪除','ok');if(row.status==='published')articleRebuild();setView('articles');}catch(e){toast(e.message,'err');}finally{busy(save,false);}});
+    });
+  }
+  async function articleRebuild(){if(!CFG.PUBLISH_WEBHOOK){toast('等待官網排程重建，亦可手動執行 GitHub Actions','ok');return;}try{var r=await fetch(CFG.PUBLISH_WEBHOOK,{method:'POST'});if(!r.ok)throw Error('HTTP '+r.status);toast('已送出重建通知，請確認 Actions 結果','ok');}catch(e){toast('重建通知未確認，請等待排程或手動重建','err');}}
 
   /* ------------------------------------------------------------------ 總覽 */
   async function viewDash(v) {
