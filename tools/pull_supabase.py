@@ -1,3 +1,291 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+"""
+把 Supabase 上的內容拉下來，寫成 data/*.json，再重建官網。
+
+    SUPABASE_URL=https://xxxx.supabase.co SUPABASE_ANON_KEY=eyJ... \
+        python3 tools/pull_supabase.py
+
+參數：
+    --force       重新下載已存在的圖片
+    --skip-build  只更新 JSON 與圖片，不重建網站
+    --dry-run     只檢查連線與筆數，不寫入任何檔案
+
+設定也可寫在專案根目錄的 .env（SUPABASE_URL / SUPABASE_ANON_KEY）。
+GitHub Actions 以 Secrets 注入同名環境變數，不需要 .env。
+"""
+
+import argparse
+import json
+import os
+import sys
+import urllib.error
+import urllib.request
+from pathlib import Path
+
+ROOT = Path(__file__).resolve().parent.parent
+DATA = ROOT / "data"
+IMG = ROOT / "assets" / "img"
+
+SERVICE_BY_CAT = {
+    "color": "hair-color",
+    "bleach": "bleach-color",
+    "straightening": "hair-straightening",
+    "perm": "perm",
+    "cut": "haircut",
+    "treatment": "hair-care",
+    "mens": "mens-hair",
+    "extensions": "extensions",
+}
+
+CATEGORY_LABELS = {
+    "color": "染髮",
+    "bleach": "漂髮",
+    "straightening": "縮毛矯正",
+    "perm": "燙髮",
+    "cut": "剪髮",
+    "treatment": "護髮",
+    "mens": "男士造型",
+    "extensions": "接髮",
+}
+
+BOOKING_NOTE = "指定設計師請在 LINE 訊息中註明設計師姓名；實際可預約時段以店家回覆為準。"
+TIMEOUT = 30
+
+
+def die(msg):
+    print("\n[失敗] " + msg, file=sys.stderr)
+    sys.exit(1)
+
+
+def note(msg):
+    print("[pull] " + msg)
+
+
+def load_env():
+    env_file = ROOT / ".env"
+    if not env_file.exists():
+        return
+    for line in env_file.read_text(encoding="utf-8").splitlines():
+        line = line.strip()
+        if not line or line.startswith("#") or "=" not in line:
+            continue
+        k, v = line.split("=", 1)
+        k, v = k.strip(), v.strip().strip('"').strip("'")
+        if k and k not in os.environ:
+            os.environ[k] = v
+
+
+def need(key):
+    v = (os.environ.get(key) or "").strip()
+    if not v:
+        die("缺少環境變數 %s。請在專案根目錄建立 .env 或設定 GitHub Secrets（見交付說明_V2.md）。" % key)
+    return v.rstrip("/")
+
+
+def http_json(url, headers, label):
+    req = urllib.request.Request(url, headers=headers)
+    try:
+        with urllib.request.urlopen(req, timeout=TIMEOUT) as r:
+            body = r.read()
+    except urllib.error.HTTPError as e:
+        detail = e.read().decode("utf-8", "replace")[:300]
+        die("%s 讀取失敗（HTTP %s）：%s\n網址：%s" % (label, e.code, detail or e.reason, url))
+    except urllib.error.URLError as e:
+        die("%s 連線失敗：%s\n網址：%s" % (label, e.reason, url))
+    try:
+        return json.loads(body.decode("utf-8"))
+    except Exception as e:
+        die("%s 回傳的不是 JSON（%s），請確認 SUPABASE_URL 是否正確。" % (label, e))
+
+
+def select(base, key, table, query):
+    url = "%s/rest/v1/%s?%s" % (base, table, query)
+    rows = http_json(url, {"apikey": key, "Authorization": "Bearer " + key,
+                           "Accept": "application/json"}, "資料表 " + table)
+    if not isinstance(rows, list):
+        die("資料表 %s 回傳格式異常（預期陣列）。" % table)
+    return rows
+
+
+import urllib.parse
+
+
+def as_list(v):
+    """jsonb 欄位可能是陣列、換行字串或空值，一律轉成乾淨的 list。"""
+    if isinstance(v, list):
+        return [x for x in v if x not in (None, "", "null")]
+    if isinstance(v, str):
+        return [x.strip() for x in v.split("\n") if x.strip()]
+    return []
+
+
+def rel(dest):
+    return "/" + str(dest.relative_to(ROOT)).replace(os.sep, "/")
+
+
+def fetch_public(base, key, storage_path, dest, force=False, optional=False):
+    """把 media 桶裡的公開檔案下載到 dest。已存在就跳過（可重複執行）。"""
+    if not storage_path:
+        return ""
+    dest.parent.mkdir(parents=True, exist_ok=True)
+    if dest.exists() and dest.stat().st_size > 0 and not force:
+        return rel(dest)
+    url = "%s/storage/v1/object/public/media/%s" % (base, urllib.parse.quote(storage_path))
+    req = urllib.request.Request(url, headers={"apikey": key})
+    try:
+        with urllib.request.urlopen(req, timeout=TIMEOUT) as r:
+            blob = r.read()
+    except urllib.error.HTTPError as e:
+        if optional:
+            note("圖片不存在，略過：%s（HTTP %s）" % (storage_path, e.code))
+            return ""
+        die("圖片下載失敗（HTTP %s）：%s\n網址：%s" % (e.code, storage_path, url))
+    except urllib.error.URLError as e:
+        if optional:
+            note("圖片下載失敗，略過：%s" % storage_path)
+            return ""
+        die("圖片下載失敗：%s\n網址：%s" % (getattr(e, "reason", e), url))
+    if not blob:
+        if optional:
+            note("圖片是空檔，略過：%s" % storage_path)
+            return ""
+        die("圖片下載回來是 0 bytes：%s" % storage_path)
+    dest.write_bytes(blob)
+    return rel(dest)
+
+
+def stylist_item(r, work_slugs, base, key, force):
+    slug = (r.get("slug") or "").strip()
+    if not slug:
+        die("有一筆設計師資料沒有 slug（網址代稱），請先在後台補上。")
+    sp = r.get("photo_path") or ""
+    photo = fetch_public(base, key, sp, IMG / "stylists" / (slug + ".webp"), force, optional=True)
+    if sp:
+        fetch_public(base, key, Path(sp).stem + "-thumb.webp",
+                     IMG / "stylists" / (slug + "-thumb.webp"), force, optional=True)
+    prices = []
+    for p in (r.get("prices") or []):
+        if isinstance(p, dict):
+            prices.append({"name": p.get("name", ""), "val": p.get("val", "") or "待店家確認",
+                           "note": p.get("note", "")})
+    return {
+        "slug": slug,
+        "status": "live" if r.get("status") == "published" else (r.get("status") or "draft"),
+        "name": r.get("name") or slug,
+        "nameEn": r.get("name_en") or "",
+        "title": r.get("title") or "",
+        "photo": photo,
+        "photoNote": r.get("photo_note") or "",
+        "intro": as_list(r.get("paragraphs")),
+        "philosophy": r.get("philosophy") or "",
+        "specialties": as_list(r.get("specialties")),
+        "styles": as_list(r.get("styles")),
+        "experience": r.get("experience") or "",
+        "tags": as_list(r.get("tags")),
+        "igUrl": r.get("instagram_url") or "",
+        "lineUrl": r.get("line_url") or "",
+        "bookingNote": BOOKING_NOTE,
+        "prices": prices,
+        "workSlugs": work_slugs,
+        "articleSlugs": [],
+        "seoTitle": r.get("seo_title") or "",
+        "seoDesc": r.get("seo_desc") or "",
+    }
+
+
+def work_item(r, stylist_slug, base, key, force):
+    slug = (r.get("slug") or "").strip()
+    if not slug:
+        die("有一件作品沒有 slug（網址代稱），請先在後台補上。")
+    plist = [p for p in (r.get("photos") or []) if p]
+    paths = []
+    for i, p in enumerate(plist):
+        sp = p.get("path") if isinstance(p, dict) else p
+        if not sp:
+            continue
+        paths.append(fetch_public(base, key, sp,
+                                  IMG / "works" / ("%s-%02d.webp" % (slug, i + 1)), force, optional=True))
+    paths = [p for p in paths if p]
+    cat = r.get("category") or "color"
+    if cat not in SERVICE_BY_CAT:
+        note("作品 %s 的分類「%s」不在名單內，改用 color。" % (slug, cat))
+        cat = "color"
+    published = r.get("status") == "published"
+    if published and not paths:
+        status = "placeholder"
+    elif published:
+        status = "live"
+    else:
+        status = r.get("status") or "draft"
+    return {
+        "slug": slug,
+        "title": r.get("title") or slug,
+        "category": cat,
+        "serviceSlug": r.get("service_slug") or SERVICE_BY_CAT[cat],
+        "stylistSlug": stylist_slug,
+        "status": status,
+        "featured_status": r.get("featured_status") or "none",
+        "photos": paths,
+        "photoNote": r.get("photo_note") or "",
+        "colorDesc": r.get("color_desc") or "",
+        "bleached": r.get("bleached") or "",
+        "completedAt": (r.get("completed_at") or "")[:10],
+        "desc": r.get("description") or "",
+        "alt": r.get("alt") or (r.get("title") or slug),
+        "seoTitle": r.get("seo_title") or "",
+        "seoDesc": r.get("seo_desc") or "",
+    }
+
+
+def article_item(r, id2slug):
+    """轉換已發布文章；封面路徑留給文章頁面渲染器處理。"""
+    slug = r["slug"]
+    title = r.get("title") or slug
+    return {
+        "slug": slug,
+        "status": "published",
+        "title": title,
+        "h1": r.get("h1") or title,
+        "category": r.get("category") or "basics",
+        "excerpt": r.get("excerpt") or "",
+        "author": r.get("author") or "HD Hope 內容團隊",
+        "stylistSlug": id2slug.get(r.get("stylist_id"), ""),
+        "heroImage": r.get("hero_image") or "",
+        "heroAlt": r.get("hero_alt") or title,
+        "heroNote": "",
+        "body": r.get("body") or [],
+        "seoTitle": r.get("seo_title") or title,
+        "seoDesc": r.get("seo_desc") or r.get("excerpt") or title,
+        "keywords": as_list(r.get("keywords")),
+        "readingTime": r.get("reading_time") or 5,
+        "relatedServices": as_list(r.get("related_services")),
+        "relatedArticles": as_list(r.get("related_articles")),
+        "featured": bool(r.get("featured")),
+        "publishedAt": r.get("published_at") or "",
+        "updatedAt": r.get("updated_at") or "",
+        "draftDate": (r.get("published_at") or "")[:10],
+    }
+
+
+def sync_articles(base, key, id2slug, rows):
+    ad = read_json("articles.json")
+    ad["items"] = [article_item(r, id2slug) for r in rows
+                   if r.get("status") == "published"]
+    ad.get("intro", {}).pop("note", None)
+    write_json("articles.json", ad)
+    note("寫入 data/articles.json：%d 篇已發布文章。" % len(ad["items"]))
+
+
+def deep_merge(dst, src):
+    for k, v in src.items():
+        if isinstance(v, dict) and isinstance(dst.get(k), dict):
+            deep_merge(dst[k], v)
+        else:
+            dst[k] = v
+
+
+def read_json(name):
     p = DATA / name
     if not p.exists():
         die("找不到 data/%s，請確認程式是在官網專案目錄裡執行。" % name)
