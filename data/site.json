@@ -35,8 +35,9 @@
     "lineUrl": "https://line.me/R/ti/p/@877onqgo",
     "lineStatus": "standard-format-unverified",
     "lineNote": "此連結依 LINE 官方帳號 ID 的標準加好友網址格式產生，上線前請由店家實際點擊驗證一次。",
-    "googleBusinessUrl": "",
-    "googleBusinessNote": "Google 商家網址尚未提供，取得後填入即可啟用評論模組與地圖按鈕。"
+"googleBusinessUrl": "https://maps.app.goo.gl/kXQjKps3Lq8VmZ1q8",
+"googleReviewUrl": "https://g.page/r/CdhYfTtzLvF5EAE/review",
+"googleBusinessNote": "歡迎查看 HD Hope Hair Salon 的 Google 顧客評價，並分享您的真實服務體驗。"
   },
   "analytics": {
     "ga4Id": "",
