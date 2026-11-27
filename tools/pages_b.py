@@ -187,7 +187,7 @@ def build_gallery_index():
     page("/gallery/",
          "髮型作品集｜染髮・漂髮・燙髮・縮毛矯正・男士造型",
          "HD Hope Hair Salon 髮型作品集：依染髮、漂髮、燙髮、縮毛矯正與男士造型分類，每件作品標記服務項目、髮況說明與負責設計師。作品照片由店家與顧客授權後陸續上線。",
-         "".join(body), d, current="/gallery/", noindex=True, priority="0.5",
+"".join(body), d, current="/gallery/", noindex=False, priority="0.5",
          blocks=[SALON_LD, breadcrumb_ld([("首頁", "/"), ("髮型作品集", "/gallery/")])])
 
 
@@ -254,7 +254,7 @@ def build_work_detail(w):
 
     page("/gallery/%s/" % w["slug"], w.get("seoTitle") or ("%s｜髮型作品" % w["title"]),
          w.get("seoDesc") or "HD Hope Hair Salon 髮型作品說明。",
-         "".join(body), d, current="/gallery/", noindex=True, priority="0.3",
+"".join(body), d, current="/gallery/", noindex=(w.get("status") != "published"), priority="0.3",
          og_type="article",
          blocks=[breadcrumb_ld(crumbs)])
 
